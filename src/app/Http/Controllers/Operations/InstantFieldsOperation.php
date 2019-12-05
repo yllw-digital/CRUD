@@ -3,7 +3,6 @@
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Exception;
 use Illuminate\Support\Facades\Route;
 
 trait InstantFieldsOperation
@@ -38,62 +37,67 @@ trait InstantFieldsOperation
             'uses'      => $controller.'@getInstantUpdateModal',
             'operation' => 'InstantFieldsOperation',
         ]);
-
-
-
     }
 
-    public function setupInstantFieldsDefaults() {
+    public function setupInstantFieldsDefaults()
+    {
         $this->crud->setOperationSetting('on_the_fly', true);
     }
 
-    public function getInstantCreateModal() {
+    public function getInstantCreateModal()
+    {
         if (request()->has('entity')) {
             $this->setupCreateOperation();
+
             return $this->getInstantModal(request()->get('entity'), 'create', $this->crud->getCreateFields());
         }
     }
 
-    public function getInstantUpdateModal() {
+    public function getInstantUpdateModal()
+    {
         if (request()->has('entity')) {
             $this->setupUpdateOperation();
-            return $this->getInstantModal(request()->get('entity'),'update', $this->crud->getUpdateFields());
+
+            return $this->getInstantModal(request()->get('entity'), 'update', $this->crud->getUpdateFields());
         }
     }
 
     public function getInstantModal($entity, $action, $fields)
     {
-            return view(
+        return view(
                 'crud::inc.on-the-fly',
                 [
                     'fields' => $fields,
                     'action' => $action,
                     'crud' => $this->crud,
-                    'entity' => $entity
+                    'entity' => $entity,
                 ]
                 );
     }
 
-    public function refreshOptions() {
+    public function refreshOptions()
+    {
         $this->setupCreateOperation();
 
         if (request()->has('field')) {
             $field = $this->crud->fields()[request()->get('field')];
             $relatedModelInstance = new $field['model']();
-            if($field) {
-                if (!isset($field['options'])) {
-                    $options = $field['model']::all()->pluck($field['attribute'],$relatedModelInstance->getKeyName());
+            if ($field) {
+                if (! isset($field['options'])) {
+                    $options = $field['model']::all()->pluck($field['attribute'], $relatedModelInstance->getKeyName());
                 } else {
-                    $options = call_user_func($field['options'], $field['model']::query()->pluck($field['attribute'],$relatedModelInstance->getKeyName()));
+                    $options = call_user_func($field['options'], $field['model']::query()->pluck($field['attribute'], $relatedModelInstance->getKeyName()));
                 }
             }
+
             return response()->json($options);
         }
     }
 
-    public function storeOnTheFly() {
+    public function storeOnTheFly()
+    {
         $this->setupCreateOperation();
+
         return $this->store();
     }
-
 }

@@ -71,11 +71,11 @@ trait CrudTrait
         $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('jsonb', 'json_array');
         try {
             $conn->getDoctrineColumn($table, $column_name);
+
             return ! $conn->getDoctrineColumn($table, $column_name)->getNotnull();
         } catch (Exception $e) {
             return true;
         }
-
     }
 
     /*

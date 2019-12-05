@@ -384,7 +384,7 @@ trait Fields
             if (isset($field['view_namespace'])) {
                 $fieldType = implode('.', [$field['view_namespace'], $field['type']]);
             }
-        }else{
+        } else {
             $fieldType = $field;
         }
 
@@ -413,12 +413,14 @@ trait Fields
         return false;
     }
 
-    public function isAnyTypeLoaded($fieldTypes) {
-        foreach($fieldTypes as $fieldType) {
-            if($this->fieldTypeLoaded($fieldType)) {
+    public function isAnyTypeLoaded($fieldTypes)
+    {
+        foreach ($fieldTypes as $fieldType) {
+            if ($this->fieldTypeLoaded($fieldType)) {
                 return true;
             }
         }
+
         return false;
     }
 
