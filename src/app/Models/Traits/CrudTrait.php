@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Models\Traits;
 
 use DB;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use Traversable;
@@ -68,8 +69,13 @@ trait CrudTrait
         $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
         $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('json', 'json_array');
         $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('jsonb', 'json_array');
+        try {
+            $conn->getDoctrineColumn($table, $column_name);
+            return ! $conn->getDoctrineColumn($table, $column_name)->getNotnull();
+        } catch (Exception $e) {
+            return true;
+        }
 
-        return ! $conn->getDoctrineColumn($table, $column_name)->getNotnull();
     }
 
     /*

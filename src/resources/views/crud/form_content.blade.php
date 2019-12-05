@@ -12,6 +12,9 @@
   </div>
 @endif
 
+@php
+    session(['current_crud_loaded_fields' => $crud->getLoadedFieldTypes()]);
+@endphp
 {{-- Define blade stacks so css and js can be pushed from the fields to these sections. --}}
 
 @section('after_styles')
@@ -41,7 +44,7 @@
       }
       selector.find("[data-init-function]").each(function () {
         var element = $(this);
-        var functionName = element.data('init-function');
+        var functionName = element.attr('data-init-function');
 
         if (typeof window[functionName] === "function") {
           window[functionName](element);
@@ -53,7 +56,6 @@
 
       // trigger the javascript for all fields that have their js defined in a separate method
       initializeFieldsWithJavascript('form');
-
 
       // Save button has multiple actions: save and exit, save and edit, save and new
       var saveActions = $('#saveActions'),
@@ -153,6 +155,9 @@
           $("input[name='current_tab']").val(window.location.hash.substr(1));
       }
 
+
+
       });
+
     </script>
 @endsection

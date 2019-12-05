@@ -379,10 +379,13 @@ trait Fields
      */
     public function getFieldTypeWithNamespace($field)
     {
-        $fieldType = $field['type'];
-
-        if (isset($field['view_namespace'])) {
-            $fieldType = implode('.', [$field['view_namespace'], $field['type']]);
+        if (is_array($field)) {
+            $fieldType = $field['type'];
+            if (isset($field['view_namespace'])) {
+                $fieldType = implode('.', [$field['view_namespace'], $field['type']]);
+            }
+        }else{
+            $fieldType = $field;
         }
 
         return $fieldType;
@@ -397,6 +400,7 @@ trait Fields
     public function addLoadedFieldType($field)
     {
         $alreadyLoaded = $this->getLoadedFieldTypes();
+
         $type = $this->getFieldTypeWithNamespace($field);
 
         if (! in_array($type, $this->getLoadedFieldTypes(), true)) {
@@ -406,6 +410,15 @@ trait Fields
             return true;
         }
 
+        return false;
+    }
+
+    public function isAnyTypeLoaded($fieldTypes) {
+        foreach($fieldTypes as $fieldType) {
+            if($this->fieldTypeLoaded($fieldType)) {
+                return true;
+            }
+        }
         return false;
     }
 
