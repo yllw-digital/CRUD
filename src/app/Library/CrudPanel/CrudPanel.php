@@ -28,7 +28,9 @@ use Backpack\CRUD\app\Library\CrudPanel\Traits\Update;
 use Backpack\CRUD\app\Library\CrudPanel\Traits\Validation;
 use Backpack\CRUD\app\Library\CrudPanel\Traits\Views;
 use Backpack\CRUD\app\Library\CrudPanel\Traits\ViewsAndRestoresRevisions;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class CrudPanel
 {
@@ -306,6 +308,85 @@ class CrudPanel
         }, $model);
 
         return get_class($result);
+    }
+
+    /**
+     * Get the relation info from relation string
+     */
+    public function getRelationInfo($relationString, $length = null, $model = null)
+    {
+        $relationArray = explode('.', $relationString);
+        $splicedRelation = $relationArray;
+        $lastKey = array_key_last($relationArray);
+        $return = null;
+
+        if (! isset($length)) {
+            $length = count($relationArray);
+        }
+
+        if (! isset($model)) {
+            $model = $this->model;
+        }
+
+        $splicedRelation = array_splice($splicedRelation, 0, $length);
+
+        $result = array_reduce($splicedRelation, function ($obj, $method) use ($relationArray, $lastKey, &$return) {
+            if($method == $relationArray[$lastKey]) {
+                $return['model'] = $obj->$method()->getRelated();
+                $return['relation_info'] = $this->getRelationInfoFromModel($obj,$relationArray[$lastKey]);
+            }
+            return $obj->$method()->getRelated();
+        }, $model);
+        return $return;
+    }
+
+    public function getRelationInfoFromModel($model,$relationString) {
+        $model = new $model;
+        $type = null;
+
+        $method = (new \ReflectionClass($model))->getMethod($relationString);
+
+            if ($method->class != get_class($model) ||
+                !empty($method->getParameters()) ||
+                $method->getName() == __FUNCTION__) {
+                return $type;
+            }
+
+            try {
+                $return = $method->invoke($model);
+                if ($return instanceof Relation) {
+                    $relationship['type'] = (new \ReflectionClass($return))->getShortName();
+                    if ($relationship['type'] == 'BelongsTo') {
+                        $relationship['connect_key'] = $return->getForeignKeyName();
+                    }
+
+                    if($relationship['type'] == 'HasMany' || $relationship['type'] == 'BelongsToMany') {
+                        $relationship['pivot'] = true;
+                    }
+                }
+            } catch(Exception $e) {}
+
+        return $relationship;
+
+    }
+    /**
+     * Check if database field allow multiple selections based on relation type
+     *
+     * @param string $relationType
+     * @return void
+     */
+
+    public function relationAllowsMultiple($relationType) {
+        switch($relationType) {
+            case 'HasMany' :
+            case 'BelongsToMany' :
+            case 'HasManyThrough' :
+            case 'MorphMany' :
+            return true;
+            break;
+            default :
+            return false;
+        }
     }
 
     /**
