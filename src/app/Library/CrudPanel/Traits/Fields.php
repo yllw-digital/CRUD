@@ -31,34 +31,30 @@ trait Fields
         // if the field_definition_array is a string, it means the programmer was lazy and has only passed the name
         // set some default values, so the field will still work
         if (is_string($field)) {
-            if(count(explode('.',$field))>1) {
-               $newField['name'] = array_slice(explode('.',$field), -1)[0];
-               //if dot notation is used we assume user wants some related field
-               $newField['entity'] = $field;
-               $newField['type'] = 'relationship';
-            }else{
+            if (count(explode('.', $field)) > 1) {
+                $newField['name'] = array_slice(explode('.', $field), -1)[0];
+                //if dot notation is used we assume user wants some related field
+                $newField['entity'] = $field;
+                $newField['type'] = 'relationship';
+            } else {
                 $newField['name'] = $field;
             }
-
         } else {
             $newField = $field;
         }
-            if(!isset($field['entity']) && !isset($newField['type'])) {
-                // if field name is set with dot notation we assume it's a relationship field
-                if (count(explode('.',$newField['name']))>1) {
-                    $field['entity'] = $newField['name'];
-                    $newField['type'] = 'relationship';
-                }
-
-                // if exists a method in the model with same field name we assume it's a relationship field
-                if(method_exists($this->model,$newField['name'])) {
-                    $newField['entity'] = $newField['name'];
-                    $newField['type'] = 'relationship';
-                }
-
+        if (! isset($field['entity']) && ! isset($newField['type'])) {
+            // if field name is set with dot notation we assume it's a relationship field
+            if (count(explode('.', $newField['name'])) > 1) {
+                $field['entity'] = $newField['name'];
+                $newField['type'] = 'relationship';
             }
 
-
+            // if exists a method in the model with same field name we assume it's a relationship field
+            if (method_exists($this->model, $newField['name'])) {
+                $newField['entity'] = $newField['name'];
+                $newField['type'] = 'relationship';
+            }
+        }
 
         // if entity is set ensure we get the rest of the info from relation
         if (isset($newField['entity'])) {
@@ -75,7 +71,7 @@ trait Fields
             //based on relation we determine if it's using pivot table
             $newField['pivot'] = $relation['relation_info']['pivot'] ?? false;
 
-            if(!isset($newField['type'])) {
+            if (! isset($newField['type'])) {
                 $newField['type'] = 'relationship';
             }
         }
@@ -105,11 +101,13 @@ trait Fields
         return $this;
     }
 
-    public function selectFieldAttributeFromRelation($relation) {
+    public function selectFieldAttributeFromRelation($relation)
+    {
         $identifiableNames = $relation['model']::getIdentifiableName();
-        if(is_array($identifiableNames)) {
+        if (is_array($identifiableNames)) {
             return array_first($identifiableNames);
         }
+
         return $identifiableNames;
     }
 
@@ -137,6 +135,7 @@ trait Fields
                 return true;
             }
         }
+
         return false;
     }
 
@@ -445,6 +444,7 @@ trait Fields
         } else {
             $fieldType = $field;
         }
+
         return $fieldType;
     }
 

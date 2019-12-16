@@ -311,7 +311,7 @@ class CrudPanel
     }
 
     /**
-     * Get the relation info from relation string
+     * Get the relation info from relation string.
      */
     public function getRelationInfo($relationString, $length = null, $model = null)
     {
@@ -331,60 +331,64 @@ class CrudPanel
         $splicedRelation = array_splice($splicedRelation, 0, $length);
 
         $result = array_reduce($splicedRelation, function ($obj, $method) use ($relationArray, $lastKey, &$return) {
-            if($method == $relationArray[$lastKey]) {
+            if ($method == $relationArray[$lastKey]) {
                 $return['model'] = $obj->$method()->getRelated();
-                $return['relation_info'] = $this->getRelationInfoFromModel($obj,$relationArray[$lastKey]);
+                $return['relation_info'] = $this->getRelationInfoFromModel($obj, $relationArray[$lastKey]);
             }
+
             return $obj->$method()->getRelated();
         }, $model);
+
         return $return;
     }
 
-    public function getRelationInfoFromModel($model,$relationString) {
+    public function getRelationInfoFromModel($model, $relationString)
+    {
         $model = new $model;
         $type = null;
 
         $method = (new \ReflectionClass($model))->getMethod($relationString);
 
-            if ($method->class != get_class($model) ||
-                !empty($method->getParameters()) ||
+        if ($method->class != get_class($model) ||
+                ! empty($method->getParameters()) ||
                 $method->getName() == __FUNCTION__) {
-                return $type;
-            }
+            return $type;
+        }
 
-            try {
-                $return = $method->invoke($model);
-                if ($return instanceof Relation) {
-                    $relationship['type'] = (new \ReflectionClass($return))->getShortName();
-                    if ($relationship['type'] == 'BelongsTo') {
-                        $relationship['connect_key'] = $return->getForeignKeyName();
-                    }
-
-                    if($relationship['type'] == 'HasMany' || $relationship['type'] == 'BelongsToMany') {
-                        $relationship['pivot'] = true;
-                    }
+        try {
+            $return = $method->invoke($model);
+            if ($return instanceof Relation) {
+                $relationship['type'] = (new \ReflectionClass($return))->getShortName();
+                if ($relationship['type'] == 'BelongsTo') {
+                    $relationship['connect_key'] = $return->getForeignKeyName();
                 }
-            } catch(Exception $e) {}
+
+                if ($relationship['type'] == 'HasMany' || $relationship['type'] == 'BelongsToMany') {
+                    $relationship['pivot'] = true;
+                }
+            }
+        } catch (Exception $e) {
+        }
 
         return $relationship;
-
     }
+
     /**
-     * Check if database field allow multiple selections based on relation type
+     * Check if database field allow multiple selections based on relation type.
      *
      * @param string $relationType
      * @return void
      */
-
-    public function relationAllowsMultiple($relationType) {
-        switch($relationType) {
-            case 'HasMany' :
-            case 'BelongsToMany' :
-            case 'HasManyThrough' :
-            case 'MorphMany' :
+    public function relationAllowsMultiple($relationType)
+    {
+        switch ($relationType) {
+            case 'HasMany':
+            case 'BelongsToMany':
+            case 'HasManyThrough':
+            case 'MorphMany':
             return true;
             break;
-            default :
+            default:
             return false;
         }
     }
