@@ -112,6 +112,11 @@
 		        startDate: moment("{{ $start_date }}"),
 		        endDate: moment("{{ $end_date }}"),
 				@endif
+				@if ($filter->options['custom'])
+				@foreach ($filter->options['custom'] as $key => $option)
+				{{ $key }}: "{{ $option }}",
+				@endforeach
+				@endif
 				alwaysShowCalendars: true,
 				autoUpdateInput: true
 			});
