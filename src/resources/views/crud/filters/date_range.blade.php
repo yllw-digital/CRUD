@@ -1,5 +1,15 @@
 {{-- Date Range Backpack CRUD filter --}}
 
+@php
+    // make sure the datepicker configuration has at least these defaults
+    $filter->options['date_range_options'] = array_merge([
+		'timePicker' => false,
+    	'alwaysShowCalendars' => true,
+		'autoUpdateInput' => true,
+    ], $filter->options['date_range_options'] ?? []);
+
+@endphp
+
 <li filter-name="{{ $filter->name }}"
 	filter-type="{{ $filter->type }}"
 	class="nav-item dropdown {{ Request::get($filter->name)?'active':'' }}">
@@ -12,6 +22,7 @@
 		        </div>
 		        <input class="form-control pull-right"
 		        		id="daterangepicker-{{ str_slug($filter->name) }}"
+			            data-bs-daterangepicker="{{ json_encode($filter->options['date_range_options'] ?? []) }}"
 		        		type="text"
 		        		@if ($filter->currentValue)
 							@php
@@ -98,8 +109,10 @@
   		}
 
 		jQuery(document).ready(function($) {
-			var dateRangeInput = $('#daterangepicker-{{ str_slug($filter->name) }}').daterangepicker({
-				timePicker: false,
+			var element = $('#daterangepicker-{{ str_slug($filter->name) }}');
+
+			var configuration = element.data('bs-daterangepicker');
+			var additionalConfiguration = {
 		        ranges: {
 		            'Today': [moment().startOf('day'), moment().endOf('day')],
 		            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -108,18 +121,16 @@
 		            'This Month': [moment().startOf('month'), moment().endOf('month')],
 		            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
 		        },
-				@if ($filter->currentValue)
+		        @if ($filter->currentValue)
 		        startDate: moment("{{ $start_date }}"),
 		        endDate: moment("{{ $end_date }}"),
 				@endif
-				@if ($filter->options['custom'])
-				@foreach ($filter->options['custom'] as $key => $option)
-				{{ $key }}: "{{ $option }}",
-				@endforeach
-				@endif
-				alwaysShowCalendars: true,
-				autoUpdateInput: true
-			});
+			};
+
+			// merge the two configurations arrays together - the one in PHP and the one in JS
+		    var finalConfiguration = $.extend(configuration, additionalConfiguration);
+
+			var dateRangeInput = element.daterangepicker(finalConfiguration);
 
 			dateRangeInput.on('apply.daterangepicker', function(ev, picker) {
 				applyDateRangeFilter{{camel_case($filter->name)}}(picker.startDate, picker.endDate);
