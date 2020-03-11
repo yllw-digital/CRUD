@@ -91,31 +91,31 @@ class AddCustomRouteContent extends Command
 
     /**
      * Get the line before which routes should be inserted.
-     * 
+     *
      * @param  array $file_lines The file on which search is being performed.
      * @return int               The line before which the routes should be inserted.
      */
     private function customRoutesFileEndLine($file_lines)
     {
         // in case there's a beginning and end comment
-        $lineWithEndComment = $this->getLastLineNumberThatContains("// end of generated Backpack routes; DO NOT delete or modify this comment;", $file_lines);
+        $lineWithEndComment = $this->getLastLineNumberThatContains('// end of generated Backpack routes; DO NOT delete or modify this comment;', $file_lines);
         // in case the last line has not been modified at all
-        $lineWithNormalEnding = $this->getLastLineNumberThatContains("}); // this should be the absolute last line of this file", $file_lines);
+        $lineWithNormalEnding = $this->getLastLineNumberThatContains('}); // this should be the absolute last line of this file', $file_lines);
         // the last line that has a closure ending in it
-        $lineWithClosureEnding = $this->getLastLineNumberThatContains("});", $file_lines);
+        $lineWithClosureEnding = $this->getLastLineNumberThatContains('});', $file_lines);
 
-        return  $lineWithEndComment ?? 
-                $lineWithNormalEnding ?? 
-                $lineWithClosureEnding ?? 
+        return  $lineWithEndComment ??
+                $lineWithNormalEnding ??
+                $lineWithClosureEnding ??
                 count($file_lines) - 1 ?? 0; // if the ending is still not clear, assume it's ok to use the last line as the ending
     }
 
     /**
      * Parse the given file stream and return the line number where a string is found.
-     * 
+     *
      * @param  string $needle   The string that's being searched for.
      * @param  array $haystack  The file where the search is being performed.
-     * @return bool|int         The last line number where the string was found. Or false.              
+     * @return bool|int         The last line number where the string was found. Or false.
      */
     private function getLastLineNumberThatContains($needle, $haystack)
     {
