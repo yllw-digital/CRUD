@@ -51,6 +51,12 @@ class AddCustomRouteContent extends Command
 
             // insert the given code before the file's last line
             $file_lines = file($old_file_path, FILE_IGNORE_NEW_LINES);
+
+            // if the code already exists in the file, abort
+            if ($this->getLastLineNumberThatContains($code, $file_lines)) {
+                return $this->info('Route already exists!');
+            }
+
             $end_line_number = $this->customRoutesFileEndLine($file_lines);
             $file_lines[$end_line_number + 1] = $file_lines[$end_line_number];
             $file_lines[$end_line_number] = '    '.$code;
