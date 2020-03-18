@@ -43,16 +43,17 @@ trait Relationships
      * @param string $method_name
      * @return bool
      */
-    protected function checkIfMethodReturnRelation($method_name) {
+    protected function checkIfMethodReturnRelation($method_name)
+    {
         try {
             $return = $this->model->{$method_name}();
 
             if ($return instanceof Relation) {
                 return true;
             }
-            return false;
 
-        }catch(\Exception $e) {
+            return false;
+        } catch (\Exception $e) {
             return false;
         }
     }
@@ -71,10 +72,8 @@ trait Relationships
         try {
             $reflect = new \ReflectionClass($this->model);
 
-
             foreach ($reflect->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 if ($method->hasReturnType()) {
-
                     $returnType = $method->getReturnType();
                     //dd(in_array(class_basename($returnType->getName()), $eloquentRelationships));
                     if (in_array(class_basename($returnType->getName()), $eloquentRelationships)) {
@@ -82,6 +81,7 @@ trait Relationships
                     }
                 }
             }
+
             return $relations;
         } catch (Exception $e) {
             return;
@@ -142,6 +142,7 @@ trait Relationships
             return false;
         } catch (Exception $e) {
             dd($e);
+
             return false;
         }
     }

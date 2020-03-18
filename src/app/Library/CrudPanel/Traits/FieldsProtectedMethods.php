@@ -69,12 +69,11 @@ trait FieldsProtectedMethods
 
         // if there's a method on the model with this name
         if (method_exists($this->model, $field['name'])) {
-
-            if($this->model->checkIfMethodReturnRelation($field['name'])) {
+            if ($this->model->checkIfMethodReturnRelation($field['name'])) {
                 $field['entity'] = $field['name'];
             }
-            return $field;
 
+            return $field;
         }
 
         // if the name ends with _id and that method exists,
@@ -83,9 +82,10 @@ trait FieldsProtectedMethods
             $possibleMethodName = Str::replaceLast('_id', '', $field['name']);
 
             if (method_exists($this->model, $possibleMethodName)) {
-                if($this->model->checkIfMethodReturnRelation($field['name'])) {
+                if ($this->model->checkIfMethodReturnRelation($field['name'])) {
                     $field['entity'] = $possibleMethodName;
                 }
+
                 return $field;
             }
         }
@@ -93,9 +93,9 @@ trait FieldsProtectedMethods
         // if there's a column in the db for this field name
         // most likely it doesn't need 'entity', UNLESS it's a foreign key
         // TODO: make this work
-         if ($relation_method = $this->checkIfFieldNameBelongsToAnyRelation($field['name'])) {
-             $field['entity'] = $relation_method['entity'];
-         }
+        if ($relation_method = $this->checkIfFieldNameBelongsToAnyRelation($field['name'])) {
+            $field['entity'] = $relation_method['entity'];
+        }
 
         return $field;
     }
@@ -134,7 +134,7 @@ trait FieldsProtectedMethods
         // if there's a model defined, but no attribute
         // guess an attribute using the indentifiableAttribute functionality in CrudTrait
         if (isset($field['model']) && ! isset($field['attribute'])) {
-            $field['attribute'] = call_user_func([(new $field['model']),'identifiableAttribute']);
+            $field['attribute'] = call_user_func([(new $field['model']), 'identifiableAttribute']);
         }
 
         return $field;

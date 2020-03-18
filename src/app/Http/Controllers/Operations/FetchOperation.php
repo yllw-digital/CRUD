@@ -60,7 +60,7 @@ trait FetchOperation
         $config['searchable_attributes'] = $config['searchable_attributes'] ?? $model_instance->identifiableAttribute();
         $config['query'] = isset($config['query']) && is_callable($config['query']) ? $config['query']($config['model']) : $model_instance; // if a closure that has been passed as "query", use the closure - otherwise use the model
 
-        if(!is_array($config['searchable_attributes'])) {
+        if (! is_array($config['searchable_attributes'])) {
             $config['searchable_attributes'] = [$config['searchable_attributes']];
         }
         // FetchOperation sends an empty query to retrieve the default entry for select when field is not nullable.
