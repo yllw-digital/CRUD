@@ -37,6 +37,27 @@ trait Relationships
     }
 
     /**
+     * Invokes $method_name in $model and returns true in case the return of the method call
+     * is an instance of Illuminate\Database\Eloquent\Relations\Relation.
+     *
+     * @param string $method_name
+     * @return bool
+     */
+    protected function checkIfMethodReturnRelation($method_name) {
+        try {
+            $return = $this->model->{$method_name}();
+
+            if ($return instanceof Relation) {
+                return true;
+            }
+            return false;
+
+        }catch(\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Get the user defined methods in model that return any type of relation.
      * Only returns methods that have their return type explicitly specified. For example:
      * public function article() : BelongsTo { return $this->belongsTo(...); }
@@ -46,20 +67,21 @@ trait Relationships
     {
         //this is the currently supported, we should be able to add more in future.
         $eloquentRelationships = ['HasOne', 'BelongsTo', 'HasMany', 'BelongsToMany'];
-
+        $relations = [];
         try {
             $reflect = new \ReflectionClass($this->model);
-            $relations = [];
+
 
             foreach ($reflect->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 if ($method->hasReturnType()) {
+
                     $returnType = $method->getReturnType();
+                    //dd(in_array(class_basename($returnType->getName()), $eloquentRelationships));
                     if (in_array(class_basename($returnType->getName()), $eloquentRelationships)) {
-                        $relations[] = $this->inferFieldAttributesFromRelationship($method);
+                        $relations[] = $this->getFieldAttributesFromRelationship($this->model, $method->getName());
                     }
                 }
             }
-
             return $relations;
         } catch (Exception $e) {
             return;
@@ -78,7 +100,6 @@ trait Relationships
         // eg: user.account.address -> Return model for account and the relation address in account model.
         $relationModel = $this->getRelationModel($method, -1);
         $relatedMethod = Arr::last(explode('.', $method));
-
         if ($relationModel != get_class($this->model)) {
             $relationModel = new $relationModel();
             if (method_exists($relationModel, $relatedMethod)) {
@@ -103,6 +124,7 @@ trait Relationships
                 $relationship['type'] = 'relationship';
                 $relationship['entity'] = $method->getName();
                 $relationship['relation_type'] = (new \ReflectionClass($relation))->getShortName();
+
                 $relationship['multiple'] = $this->relationAllowsMultiple($relationship['relation_type']);
                 $relationship['model'] = get_class($relation->getRelated());
 
@@ -119,6 +141,7 @@ trait Relationships
 
             return false;
         } catch (Exception $e) {
+            dd($e);
             return false;
         }
     }

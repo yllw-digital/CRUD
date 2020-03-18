@@ -69,10 +69,13 @@ trait FieldsProtectedMethods
 
         // if there's a method on the model with this name
         if (method_exists($this->model, $field['name'])) {
-            $field['entity'] = $field['name'];
 
+            if($this->model->checkIfMethodReturnRelation($field['name'])) {
+                $field['entity'] = $field['name'];
+            }
             return $field;
-        } // TODO: also check if that method is a relationship (returns Relation)
+
+        }
 
         // if the name ends with _id and that method exists,
         // we can probably use it as an entity
@@ -80,18 +83,19 @@ trait FieldsProtectedMethods
             $possibleMethodName = Str::replaceLast('_id', '', $field['name']);
 
             if (method_exists($this->model, $possibleMethodName)) {
-                $field['entity'] = $possibleMethodName;
-
+                if($this->model->checkIfMethodReturnRelation($field['name'])) {
+                    $field['entity'] = $possibleMethodName;
+                }
                 return $field;
-            } // TODO: also check if that method is a relationship (returns Relation)
+            }
         }
 
         // if there's a column in the db for this field name
         // most likely it doesn't need 'entity', UNLESS it's a foreign key
         // TODO: make this work
-        // if ($this->checkIfFieldNameBelongsToAnyRelation($field['name'])) {
-        //     $field['entity'] = RELATIONSHIP_METHOD;
-        // }
+         if ($relation_method = $this->checkIfFieldNameBelongsToAnyRelation($field['name'])) {
+             $field['entity'] = $relation_method['entity'];
+         }
 
         return $field;
     }
