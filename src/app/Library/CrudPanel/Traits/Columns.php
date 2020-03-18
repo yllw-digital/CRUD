@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Support\Arr;
+
 trait Columns
 {
     use ColumnsProtectedMethods;
@@ -130,7 +132,7 @@ trait Columns
     public function addDefaultTypeToColumn($column)
     {
         if (array_key_exists('name', (array) $column)) {
-            $default_type = $this->getFieldTypeFromDbColumnType($column['name']);
+            $default_type = $this->inferFieldTypeFromDbColumnType($column['name']);
 
             return array_merge(['type' => $default_type], $column);
         }
@@ -146,7 +148,7 @@ trait Columns
     public function removeColumn($columnKey)
     {
         $columnsArray = $this->columns();
-        array_forget($columnsArray, $columnKey);
+        Arr::forget($columnsArray, $columnKey);
         $this->setOperationSetting('columns', $columnsArray);
     }
 
