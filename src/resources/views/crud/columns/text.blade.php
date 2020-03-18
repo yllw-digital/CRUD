@@ -4,7 +4,22 @@
 
 	if (is_array($value)) {
 		$value = json_encode($value);
-	}
+    }
+
+    if(!empty($column['wrapper'])) {
+        $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
+    }
+
+    $column['escaped'] = $column['escaped'] ?? true;
+    $column['text'] = str_limit($value, array_key_exists('limit', $column) ? $column['limit'] : 40, '[...]');
 @endphp
 
-<span>{{ (array_key_exists('prefix', $column) ? $column['prefix'] : '').Str::limit(strip_tags($value), array_key_exists('limit', $column) ? $column['limit'] : 40, "[...]").(array_key_exists('suffix', $column) ? $column['suffix'] : '') }}</span>
+<span>
+    @includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_start')
+        @if($column['escaped'])
+            {{ $column['text'] }}
+        @else
+            {!! $column['text'] !!}
+        @endif
+    @includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_end')
+</span>

@@ -344,15 +344,20 @@ class CrudPanel
      *
      * @return array An array containing a list of attributes from the resulting model.
      */
-    public function getModelAttributeFromRelation($model, $relationString, $attribute)
+    public function getRelatedEntriesAttributes($model, $relationString, $attribute)
     {
-        $endModels = $this->getRelationModelInstances($model, $relationString);
+        $endModels = $this->getRelatedEntries($model, $relationString);
         $attributes = [];
-        foreach ($endModels as $model) {
-            if (is_array($model) && isset($model[$attribute])) {
-                $attributes[] = $model[$attribute];
-            } elseif ($model->{$attribute}) {
-                $attributes[] = $model->{$attribute};
+        foreach ($endModels as $model => $entries) {
+            $modelKey = (new $model())->getKeyName();
+            if (is_array($entries) && ! isset($entries[$attribute])) {
+                foreach ($entries as $entry) {
+                    $attributes[$entry[$modelKey]] = $entry[$attribute];
+                }
+            } elseif (is_array($entries) && isset($entries[$attribute])) {
+                $attributes[$entries[$modelKey]] = $entries[$attribute];
+            } elseif ($entries->{$attribute}) {
+                $attributes[$entries->{$modelKey}] = $entries->{$attribute};
             }
         }
 
@@ -368,25 +373,31 @@ class CrudPanel
      *
      * @return array An array of the associated model instances defined by the relation string.
      */
-    private function getRelationModelInstances($model, $relationString)
+    private function getRelatedEntries($model, $relationString)
     {
         $relationArray = explode('.', $relationString);
         $firstRelationName = Arr::first($relationArray);
         $relation = $model->{$firstRelationName};
+        $currentResults = [];
 
         $results = [];
-        if (! empty($relation)) {
-            if ($relation instanceof Collection) {
-                $currentResults = $relation->toArray();
+        if (! is_null($relation)) {
+            if ($relation instanceof Collection && ! $relation->isEmpty()) {
+                $currentResults[get_class($relation->first())] = $relation->toArray();
+            } elseif (is_array($relation) && ! empty($relation)) {
+                $currentResults[get_class($relation->first())] = $relation;
             } else {
-                $currentResults[] = $relation;
+                //relation must be App\Models\Article or App\Models\Category
+                if (! $relation instanceof Collection && ! empty($relation)) {
+                    $currentResults[get_class($relation)] = $relation->toArray();
+                }
             }
 
             array_shift($relationArray);
 
             if (! empty($relationArray)) {
-                foreach ($currentResults as $currentResult) {
-                    $results = array_merge($results, $this->getRelationModelInstances($currentResult, implode('.', $relationArray)));
+                foreach ($currentResults as $model => $currentResult) {
+                    $results[$model] = array_merge($results[$model], $this->getRelatedEntries($currentResult, implode('.', $relationArray)));
                 }
             } else {
                 $results = $currentResults;

@@ -1,3 +1,16 @@
+@php
+    $column['text'] = $column['value'] ?? '';
+    $column['escaped'] = $column['escaped'] ?? false;
+    if(!empty($column['wrapper'])) {
+        $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
+    }
+@endphp
 <span>
-	{!! $column['value']?? ' ' !!}
+	@includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_start')
+        @if($column['escaped'])
+            {{ $column['text'] }}
+        @else
+            {!! $column['text'] !!}
+        @endif
+    @includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_end')
 </span>
