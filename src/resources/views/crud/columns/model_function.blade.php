@@ -1,11 +1,14 @@
 {{-- custom return value --}}
 @php
     $value = $entry->{$column['function_name']}(...($column['function_parameters'] ?? []));
-    $column['text'] = (array_key_exists('prefix', $column) ? $column['prefix'] : '').str_limit($value, array_key_exists('limit', $column) ? $column['limit'] : 40, "[...]").(array_key_exists('suffix', $column) ? $column['suffix'] : '');
+    
     $column['escaped'] = $column['escaped'] ?? false;
-    if(!empty($column['wrapper'])) {
-        $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
-    }
+    $column['limit']   = $column['limit'] ?? 40;
+    $column['prefix']  = $column['prefix'] ?? '';
+    $column['suffix']  = $column['suffix'] ?? '';
+    $column['text']    = $column['prefix'].
+                         Str::limit($value, $column['limit'], "[...]").
+                         $column['suffix'];
 @endphp
 
 <span>

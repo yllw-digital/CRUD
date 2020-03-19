@@ -1,17 +1,11 @@
 {{-- regular object attribute --}}
 @php
 	$value = data_get($entry, $column['name']);
-
-	if (is_array($value)) {
-		$value = json_encode($value);
-    }
-
-    if(!empty($column['wrapper'])) {
-        $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
-    }
+    $value = is_array($value) ? json_encode($value) : $value;
 
     $column['escaped'] = $column['escaped'] ?? true;
-    $column['text'] = str_limit($value, array_key_exists('limit', $column) ? $column['limit'] : 40, '[...]');
+    $column['limit'] = $column['limit'] ?? 40;
+    $column['text'] = Str::limit($value, $column['limit'], '[...]');
 @endphp
 
 <span>
