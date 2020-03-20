@@ -60,9 +60,6 @@ trait FetchOperation
         $config['searchable_attributes'] = $config['searchable_attributes'] ?? $model_instance->identifiableAttribute();
         $config['query'] = isset($config['query']) && is_callable($config['query']) ? $config['query']($config['model']) : $model_instance; // if a closure that has been passed as "query", use the closure - otherwise use the model
 
-        if (! is_array($config['searchable_attributes'])) {
-            $config['searchable_attributes'] = [$config['searchable_attributes']];
-        }
         // FetchOperation sends an empty query to retrieve the default entry for select when field is not nullable.
         // Also sends an empty query in case we want to load all entities to emulate non-ajax fields
         // when using InlineCreate.
@@ -75,7 +72,7 @@ trait FetchOperation
 
         $textColumnTypes = ['string', 'json_string', 'text'];
         // for each searchable attribute, add a WHERE clause
-        foreach ($config['searchable_attributes'] as $k => $searchColumn) {
+        foreach ((array) $config['searchable_attributes'] as $k => $searchColumn) {
             $operation = ($k == 0) ? 'where' : 'orWhere';
             $columnType = $config['query']->getColumnType($searchColumn);
 
