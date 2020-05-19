@@ -1,7 +1,7 @@
 <!-- bootstrap datetimepicker input -->
 
 <?php
-    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+    if (is_null(old(square_brackets_to_dots($field['name']))) && ! empty(session()->getOldInput())) {
         $field['value'] = '';
     }
 // if the column has been cast to Carbon or Date (using attribute casting)

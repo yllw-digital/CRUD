@@ -1,7 +1,7 @@
 <!-- address google -->
 <?php
 
-if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+if (is_null(old(square_brackets_to_dots($field['name']))) && ! empty(session()->getOldInput())) {
     $field['value'] = '';
 }
 // the field should work whether or not Laravel attribute casting is used

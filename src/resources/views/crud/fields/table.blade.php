@@ -1,7 +1,7 @@
 <!-- Backpack Table Field Type -->
 
 <?php
-    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+    if (is_null(old(square_brackets_to_dots($field['name']))) && ! empty(session()->getOldInput())) {
         $field['value'] = [];
     }
     $max = isset($field['max']) && (int) $field['max'] > 0 ? $field['max'] : -1;

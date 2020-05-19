@@ -1,11 +1,11 @@
 <!-- bootstrap daterange picker input -->
 
 <?php
-    if(is_null(old(square_brackets_to_dots($field['name'][0]))) && !empty(session()->getOldInput())) {
+    if (is_null(old(square_brackets_to_dots($field['name'][0]))) && ! empty(session()->getOldInput())) {
         $start_value = '';
     }
 
-    if(is_null(old(square_brackets_to_dots($field['name'][1]))) && !empty(session()->getOldInput())) {
+    if (is_null(old(square_brackets_to_dots($field['name'][1]))) && ! empty(session()->getOldInput())) {
         $end_value = '';
     }
     // if the column has been cast to Carbon or Date (using attribute casting)
