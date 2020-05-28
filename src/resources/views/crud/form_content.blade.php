@@ -117,21 +117,19 @@
       @if ($crud->inlineErrorsEnabled() && $errors->any())
 
         window.errors = {!! json_encode($errors->messages()) !!};
-        // console.error(window.errors);
 
         $.each(errors, function(property, messages){
 
             var normalizedProperty = property.split('.').map(function(item, index){
                     return index === 0 ? item : '['+item+']';
                 }).join('');
-
             var field = $('[name="' + normalizedProperty + '[]"]').length ?
                         $('[name="' + normalizedProperty + '[]"]') :
                         $('[name="' + normalizedProperty + '"]'),
                         container = field.parents('.form-group');
 
             container.addClass('text-danger');
-            container.children('input, textarea').addClass('is-invalid');
+            container.children('input, textarea, select').addClass('is-invalid');
 
             $.each(messages, function(key, msg){
                 // highlight the input that errored
@@ -140,8 +138,8 @@
 
                 // highlight its parent tab
                 @if ($crud->tabsEnabled())
-                var tab_id = $(container).parent().attr('id');
-                $("#form_tabs [aria-controls="+tab_id+"]").addClass('text-red');
+                var tab_id = $(container).closest('[role="tabpanel"]').attr('id');
+                $("[aria-controls="+tab_id+"]").addClass('text-danger');
                 @endif
             });
         });
