@@ -1,4 +1,6 @@
 @php
+    //in case entity is someRelation.attribute we want only the someRelation part.
+    $routeEntity = $crud->getOnlyRelationEntity($field);
 
     $connected_entity = new $field['model'];
     $connected_entity_key_name = $connected_entity->getKeyName();
@@ -7,7 +9,7 @@
     // a crud field like this one.
     $field['type'] = 'fetch';
     $field['multiple'] = $field['multiple'] ?? $crud->guessIfFieldHasMultipleFromRelationType($field['relation_type']);
-    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.Str::snake($field['name']));
+    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.Str::snake($routeEntity));
     $field['attribute'] = $field['attribute'] ?? $connected_entity->identifiableAttribute();
     $field['placeholder'] = $field['placeholder'] ?? ($field['multiple'] ? trans('backpack::crud.select_entries') : trans('backpack::crud.select_entry'));
     $field['include_all_form_fields'] = $field['include_all_form_fields'] ?? true;

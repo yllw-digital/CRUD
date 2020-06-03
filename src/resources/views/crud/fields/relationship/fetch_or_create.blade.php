@@ -44,7 +44,7 @@
     }
     $field['value'] = json_encode($current_value);
 
-    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'. Str::snake($field['name']));
+    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'. Str::snake($routeEntity));
 
     $field['include_all_form_fields'] = $field['include_all_form_fields'] ?? true;
 
