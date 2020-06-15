@@ -86,6 +86,7 @@ trait Update
      */
     private function getModelAttributeValue($model, $field)
     {
+
         if (isset($field['entity'])) {
             $relational_entity = $this->parseRelationFieldNamesFromHtml([$field])[0]['name'];
 
@@ -100,6 +101,26 @@ trait Update
             if (method_exists($relatedModel, $relationMethod) && $relatedModel->{$relationMethod}() instanceof HasOne) {
                 return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
             } else {
+                if ($field['type'] == 'repeatable') {
+                    //we remove the first field from repeatable because it is our relation.
+                    array_shift($field['fields']);
+                    //we grab the related models
+                    $related_models = $relatedModel->{$relationMethod};
+                    $return = [];
+
+                    //for any given model, we grab the attributes that belong to our pivot table.
+                    foreach ($related_models as $related_model) {
+                        $item[$field['name']] = $related_model->getKey();
+                        //for any given related model, we attach the pivot fields.
+                        foreach ($field['fields'] as $pivot_field) {
+
+                            $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
+                        }
+                        $return[] = $item;
+                    }
+                    //we return the json encoded result as expected by repeatable field.
+                    return json_encode($return);
+                } //endif repeatable
                 return $relatedModel->{$relationMethod};
             }
         }

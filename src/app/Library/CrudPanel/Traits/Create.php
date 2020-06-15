@@ -110,8 +110,13 @@ trait Create
         $fields_with_relationships = $this->getRelationFields();
         foreach ($fields_with_relationships as $key => $field) {
             if (isset($field['pivot']) && $field['pivot']) {
+
                 $values = isset($data[$field['name']]) ? $data[$field['name']] : [];
 
+                //we override the values if the field is repeatable and pivot == true
+                if($field['type'] == 'repeatable') {
+                    $values = $this->parseRepeatableValues($field, $values);
+                }
                 // if a JSON was passed instead of an array, turn it into an array
                 if (is_string($values)) {
                     $values = json_decode($values);
@@ -125,7 +130,22 @@ trait Create
                         foreach ($field['pivotFields'] as $pivot_field_name) {
                             $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
                         }
+                    }else{
+                        if ($field['type'] == 'repeatable') {
+                            $field_name = $field['name'];
+                            $field_data = json_decode($data[$field_name], true);
+
+                            //we grab from the request the specific data for this pivot
+                            $data_for_pivot = Arr::first(Arr::where($field_data, function ($item) use ($pivot_id, $field_name) {
+                                return $item[$field_name] === $pivot_id;
+                            }));
+
+                            //we remove the first field from data as it is our relation.
+                            array_shift($data_for_pivot);
+                            $pivot_data = $data_for_pivot;
+                        }
                     }
+
                     $relation_data[$pivot_id] = $pivot_data;
                 }
 
@@ -137,6 +157,15 @@ trait Create
                 $model->{$field['name']}()->sync($values);
             }
         }
+    }
+
+    public function parseRepeatableValues($field, $values) {
+        $decoded_values = json_decode($values, true);
+        $related_keys = [];
+        foreach($decoded_values as $value) {
+            $related_keys[] = $value[$field['name']];
+        }
+        return $related_keys;
     }
 
     /**
