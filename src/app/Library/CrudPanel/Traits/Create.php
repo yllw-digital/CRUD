@@ -110,11 +110,10 @@ trait Create
         $fields_with_relationships = $this->getRelationFields();
         foreach ($fields_with_relationships as $key => $field) {
             if (isset($field['pivot']) && $field['pivot']) {
-
                 $values = isset($data[$field['name']]) ? $data[$field['name']] : [];
 
                 //we override the values if the field is repeatable and pivot == true
-                if($field['type'] == 'repeatable') {
+                if ($field['type'] == 'repeatable') {
                     $values = $this->parseRepeatableValues($field, $values);
                 }
                 // if a JSON was passed instead of an array, turn it into an array
@@ -130,7 +129,7 @@ trait Create
                         foreach ($field['pivotFields'] as $pivot_field_name) {
                             $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
                         }
-                    }else{
+                    } else {
                         if ($field['type'] == 'repeatable') {
                             $field_name = $field['name'];
                             $field_data = json_decode($data[$field_name], true);
@@ -159,12 +158,14 @@ trait Create
         }
     }
 
-    public function parseRepeatableValues($field, $values) {
+    public function parseRepeatableValues($field, $values)
+    {
         $decoded_values = json_decode($values, true);
         $related_keys = [];
-        foreach($decoded_values as $value) {
+        foreach ($decoded_values as $value) {
             $related_keys[] = $value[$field['name']];
         }
+
         return $related_keys;
     }
 

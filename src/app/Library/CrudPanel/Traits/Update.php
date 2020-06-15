@@ -86,7 +86,6 @@ trait Update
      */
     private function getModelAttributeValue($model, $field)
     {
-
         if (isset($field['entity'])) {
             $relational_entity = $this->parseRelationFieldNamesFromHtml([$field])[0]['name'];
 
@@ -113,7 +112,6 @@ trait Update
                         $item[$field['name']] = $related_model->getKey();
                         //for any given related model, we attach the pivot fields.
                         foreach ($field['fields'] as $pivot_field) {
-
                             $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
                         }
                         $return[] = $item;
@@ -121,6 +119,7 @@ trait Update
                     //we return the json encoded result as expected by repeatable field.
                     return json_encode($return);
                 } //endif repeatable
+
                 return $relatedModel->{$relationMethod};
             }
         }
