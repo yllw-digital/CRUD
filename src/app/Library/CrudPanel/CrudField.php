@@ -152,7 +152,7 @@ class CrudField
 
     /**
      * Set the value for a certain attribute on the CrudField object.
-     * NOTE: This function needs to be public so we can call it from FieldGroup
+     * NOTE: This function needs to be public so we can call it from FieldGroup.
      *
      * @param string $attribute Name of the attribute.
      * @param string $value     Value of that attribute.
@@ -168,7 +168,6 @@ class CrudField
      *
      * @return CrudField
      */
-
     public function save()
     {
         $key = $this->attributes['name'];
