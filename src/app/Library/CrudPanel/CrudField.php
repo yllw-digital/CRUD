@@ -150,38 +150,26 @@ class CrudField
         return $this->save();
     }
 
-    // ---------------
-    // PRIVATE METHODS
-    // ---------------
-
     /**
      * Set the value for a certain attribute on the CrudField object.
+     * NOTE: This function needs to be public so we can call it from FieldGroup
      *
      * @param string $attribute Name of the attribute.
      * @param string $value     Value of that attribute.
      */
-    private function setAttributeValue($attribute, $value)
+    public function setAttributeValue($attribute, $value)
     {
         $this->attributes[$attribute] = $value;
     }
 
     /**
-     * Replace all field attributes on the CrudField object
-     * with the given array of attribute-value pairs.
-     *
-     * @param array $array Array of attributes and their values.
-     */
-    private function setAllAttributeValues($array)
-    {
-        $this->attributes = $array;
-    }
-
-    /**
      * Update the global CrudPanel object with the current field attributes.
+     * NOTE: Needs to be public so we can call it from FieldGroup.
      *
      * @return CrudField
      */
-    private function save()
+
+    public function save()
     {
         $key = $this->attributes['name'];
 
@@ -192,6 +180,21 @@ class CrudField
         }
 
         return $this;
+    }
+
+    // ---------------
+    // PRIVATE METHODS
+    // ---------------
+
+    /**
+     * Replace all field attributes on the CrudField object
+     * with the given array of attribute-value pairs.
+     *
+     * @param array $array Array of attributes and their values.
+     */
+    private function setAllAttributeValues($array)
+    {
+        $this->attributes = $array;
     }
 
     // -----------------
