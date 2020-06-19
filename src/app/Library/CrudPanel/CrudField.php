@@ -150,8 +150,6 @@ class CrudField
         return $this->save();
     }
 
-
-
     /**
      * Update the global CrudPanel object with the current field attributes.
      * NOTE: Needs to be public so we can call it from FieldGroup.
