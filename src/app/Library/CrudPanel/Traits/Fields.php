@@ -491,5 +491,4 @@ trait Fields
     {
         return new CrudField($name);
     }
-
 }
