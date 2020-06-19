@@ -150,25 +150,6 @@ class CrudField
         return $this->save();
     }
 
-    /**
-     * Update the global CrudPanel object with the current field attributes.
-     * NOTE: Needs to be public so we can call it from FieldGroup.
-     *
-     * @return CrudField
-     */
-    public function save()
-    {
-        $key = $this->attributes['name'];
-
-        if ($this->crud()->hasFieldWhere('name', $key)) {
-            $this->crud()->modifyField($key, $this->attributes);
-        } else {
-            $this->crud()->addField($this->attributes);
-        }
-
-        return $this;
-    }
-
     // ---------------
     // PRIVATE METHODS
     // ---------------
@@ -182,6 +163,24 @@ class CrudField
     private function setAttributeValue($attribute, $value)
     {
         $this->attributes[$attribute] = $value;
+    }
+    
+    /**
+     * Update the global CrudPanel object with the current field attributes.
+     *
+     * @return CrudField
+     */
+    private function save()
+    {
+        $key = $this->attributes['name'];
+
+        if ($this->crud()->hasFieldWhere('name', $key)) {
+            $this->crud()->modifyField($key, $this->attributes);
+        } else {
+            $this->crud()->addField($this->attributes);
+        }
+
+        return $this;
     }
 
     /**
