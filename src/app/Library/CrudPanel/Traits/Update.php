@@ -104,7 +104,7 @@ trait Update
                 // extra attributes on it. It's a Repeatable Field so its values are sent as json.
                 if (isset($field['pivot']) && $field['pivot'] && isset($field['fields']) && is_array($field['fields'])) {
                     //we remove the first field from repeatable because it is our relation.
-                    $pivot_fields = Arr::where($field['fields'], function($item) use ($field) {
+                    $pivot_fields = Arr::where($field['fields'], function ($item) use ($field) {
                         return $field['name'] != $item['name'];
                     });
 
