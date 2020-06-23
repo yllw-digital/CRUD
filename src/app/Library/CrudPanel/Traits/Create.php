@@ -115,7 +115,6 @@ trait Create
                 // if pivot is true and there is `fields` array in this field we are trying to sync a pivot with
                 // extra attributes on it. It's a Repeatable Field so its values are sent as json.
                 if (isset($field['fields']) && is_array($field['fields'])) {
-                    $pivot_extra_fields_repeatable = true;
                     $decoded_values = json_decode($values, true);
                     $values = [];
                     foreach ($decoded_values as $value) {
@@ -135,7 +134,7 @@ trait Create
                             $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
                         }
                     } else {
-                        if (isset($pivot_extra_fields_repeatable) && $pivot_extra_fields_repeatable) {
+                        if (isset($field['fields']) && is_array($field['fields'])) {
                             $field_data = json_decode($data[$field['name']], true);
 
                             //we grab from the request the specific data for this pivot
