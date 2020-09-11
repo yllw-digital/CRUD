@@ -28,10 +28,12 @@ trait Create
 
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
-        $item = $this->model->create(Arr::except($data, $nn_relationships));
+        $item = $this->model->make(Arr::except($data, $nn_relationships));
 
         // if there are any relationships available, also sync those
         $this->createRelations($item, $data);
+        
+        $item->save();
 
         return $item;
     }
