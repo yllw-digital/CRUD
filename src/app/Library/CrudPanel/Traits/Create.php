@@ -32,7 +32,6 @@ trait Create
 
         // if there are any relationships available, also sync those
         $this->createRelations($item, $data);
-        
         $item->save();
 
         return $item;
