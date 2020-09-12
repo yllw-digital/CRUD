@@ -205,22 +205,22 @@ trait Create
                     $relation->save($modelInstance);
                 }
             } elseif ($relation instanceof HasMany || $relation instanceof MorphMany) {
-                
                 $keys = Arr::pluck($item->{$relationMethod}, $relation->getRelated()->getKeyName());
-                foreach(json_decode($relationData['values'][$relationMethod], true) as $relationItems){
-                    if ($relationItems[$relation->getForeignKeyName()] != "" && $relationItems[$relation->getRelated()->getKeyName()] != "") {
+                foreach (json_decode($relationData['values'][$relationMethod], true) as $relationItems) {
+                    if ($relationItems[$relation->getForeignKeyName()] != '' && $relationItems[$relation->getRelated()->getKeyName()] != '') {
                         $modelInstance = $model::find($relationItems[$relation->getRelated()->getKeyName()]);
                         $modelInstance->update($relationItems);
-                        if (($key = array_search($relationItems[$relation->getRelated()->getKeyName()], $keys)) !== false)
+                        if (($key = array_search($relationItems[$relation->getRelated()->getKeyName()], $keys)) !== false) {
                             unset($keys[$key]);
+                        }
                     } else {
                         $modelInstance = new $model($relationItems);
                         $relation->save($modelInstance);
                     }
-                    
                 }
-                foreach ($keys as $id)
+                foreach ($keys as $id) {
                     $item->{$relationMethod}->find($id)->delete();
+                }
             }
 
             if (isset($relationData['relations'])) {
