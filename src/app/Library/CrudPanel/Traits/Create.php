@@ -28,11 +28,23 @@ trait Create
 
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
+
         $item = $this->model->make(Arr::except($data, $nn_relationships));
+
+        // handle BelongsTo 1:1 relation
+        $relations = $this->getRelationDataFromFormData($data);
+        if (!empty($relations['relations'])) {
+            foreach ($this->getRelationDataFromFormData($data)['relations'] as $relationMethod => $relationData) {
+                $relation = $item->{$relationMethod}();
+                if ($relation instanceof BelongsTo) {
+                    $relation->associate($relationData['model']::find($relationData['values'])->first());
+                }
+            }
+        }
+        $item->save();
 
         // if there are any relationships available, also sync those
         $this->createRelations($item, $data);
-        $item->save();
 
         return $item;
     }
@@ -172,14 +184,7 @@ trait Create
             $model = $relationData['model'];
             $relation = $item->{$relationMethod}();
 
-            if ($relation instanceof BelongsTo) {
-                $modelInstance = $model::find($relationData['values'])->first();
-                if ($modelInstance != null) {
-                    $relation->associate($modelInstance)->save();
-                } else {
-                    $relation->dissociate()->save();
-                }
-            } elseif ($relation instanceof HasOne) {
+            if ($relation instanceof HasOne) {
                 if ($item->{$relationMethod} != null) {
                     $item->{$relationMethod}->update($relationData['values']);
                     $modelInstance = $item->{$relationMethod};
