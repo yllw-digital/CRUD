@@ -29,17 +29,13 @@ trait Create
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
 
+        // init and fill model
         $item = $this->model->make(Arr::except($data, $nn_relationships));
 
-        // handle BelongsTo 1:1 relation
-        $relations = $this->getRelationDataFromFormData($data);
-        if (!empty($relations['relations'])) {
-            foreach ($this->getRelationDataFromFormData($data)['relations'] as $relationMethod => $relationData) {
-                $relation = $item->{$relationMethod}();
-                if ($relation instanceof BelongsTo) {
-                    $relation->associate($relationData['model']::find($relationData['values'])->first());
-                }
-            }
+        // handle BelongsTo 1:1 relations
+        foreach ($this->getBelongsToRelationFields() as $relationField) {
+            $item->{$this->getOnlyRelationEntity($relationField)}()
+                ->associate($relationField['model']::find(Arr::get($data, $relationField['name']))->first());
         }
         $item->save();
 
@@ -84,6 +80,19 @@ trait Create
         }
 
         return $relationFields;
+    }
+    
+    /**
+     * Get all BelongsTo relationship fields.
+     *
+     * @return array The fields with 1:1 BelongsTo relationships and with model set.
+     */
+    public function getBelongsToRelationFields(): array
+    {
+        return collect($this->fields())
+            ->where('model')
+            ->where('relation_type', 'BelongsTo')
+            ->toArray();
     }
 
     /**
