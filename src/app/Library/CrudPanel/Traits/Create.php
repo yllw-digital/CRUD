@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
@@ -33,10 +34,7 @@ trait Create
         $item = $this->model->make(Arr::except($data, $nn_relationships));
 
         // handle BelongsTo 1:1 relations
-        foreach ($this->getBelongsToRelationFields() as $relationField) {
-            $item->{$this->getOnlyRelationEntity($relationField)}()
-                ->associate($relationField['model']::find(Arr::get($data, $relationField['name']))->first());
-        }
+        $item = $this->handleBelongsToRelations($item, $data);
         $item->save();
 
         // if there are any relationships available, also sync those
@@ -81,7 +79,24 @@ trait Create
 
         return $relationFields;
     }
-    
+
+    /**
+     * Associate and dissociate.
+     *
+     * @param  Model
+     * @param  array The form data.
+     * @return Model Model with relationships set up.
+     */
+    public function handleBelongsToRelations($item, array $data)
+    {
+        foreach ($this->getBelongsToRelationFields() as $relationField) {
+            $item->{$this->getOnlyRelationEntity($relationField)}()
+                ->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
+        }
+
+        return $item;
+    }
+
     /**
      * Get all BelongsTo relationship fields.
      *
