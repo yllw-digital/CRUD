@@ -33,7 +33,10 @@ trait Update
 
         $data = Arr::except($data, $nn_relationships);
 
-        $updated = $item->update($data);
+        // handle BelongsTo 1:1 relations
+        $item = $this->handleBelongsToRelations($item, $data);
+        $item->fill($data);
+        $item->save();
 
         return $item;
     }
