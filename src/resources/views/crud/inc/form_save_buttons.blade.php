@@ -26,7 +26,7 @@
 </div>
 @endif
 @if(!$crud->hasOperationSetting('showCancelButton') || $crud->getOperationSetting('showCancelButton') == true)
-    <a href="{{ $crud->hasAccess('list') ? url($crud->route) : url()->previous() }}" class="btn btn-default"><span class="la la-ban"></span> &nbsp;{{ trans('backpack::crud.cancel') }}</a>
+    <a href="{{ is_callable($crud->getOperationSetting('cancelButtonUrl')) ? $crud->getOperationSetting('cancelButtonUrl')($crud) : is_null($crud->getOperationSetting('cancelButtonUrl')) ? ($crud->hasAccess('list') ? url($crud->route) : url()->previous()) : $crud->getOperationSetting('cancelButtonUrl') }}" class="btn btn-default"><span class="la la-ban"></span> &nbsp;{{ trans('backpack::crud.cancel') }}</a>
 @endif
 
 </div>
