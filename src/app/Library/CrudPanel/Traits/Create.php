@@ -3,7 +3,6 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
 
@@ -34,7 +33,7 @@ trait Create
         $item = $this->model->make(Arr::except($data, $nn_relationships));
 
         // handle BelongsTo 1:1 relations
-        $item = $this->handleBelongsToRelations($item, $data);
+        $item = $this->associateBelongsToRelations($item, $data);
         $item->save();
 
         // if there are any relationships available, also sync those
@@ -87,27 +86,14 @@ trait Create
      * @param  array The form data.
      * @return Model Model with relationships set up.
      */
-    public function handleBelongsToRelations($item, array $data)
+    public function associateBelongsToRelations($item, array $data)
     {
-        foreach ($this->getBelongsToRelationFields() as $relationField) {
+        foreach ($this->getFieldsWithRelationType('BelongsTo') as $relationField) {
             $item->{$this->getOnlyRelationEntity($relationField)}()
                 ->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
         }
 
         return $item;
-    }
-
-    /**
-     * Get all BelongsTo relationship fields.
-     *
-     * @return array The fields with 1:1 BelongsTo relationships and with model set.
-     */
-    public function getBelongsToRelationFields(): array
-    {
-        return collect($this->fields())
-            ->where('model')
-            ->where('relation_type', 'BelongsTo')
-            ->toArray();
     }
 
     /**

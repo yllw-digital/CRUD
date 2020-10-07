@@ -22,6 +22,7 @@ trait Update
      */
     public function update($id, $data)
     {
+
         $data = $this->decodeJsonCastedAttributes($data);
         $data = $this->compactFakeFields($data);
         $item = $this->model->findOrFail($id);
@@ -34,7 +35,8 @@ trait Update
         $data = Arr::except($data, $nn_relationships);
 
         // handle BelongsTo 1:1 relations
-        $item = $this->handleBelongsToRelations($item, $data);
+        $item = $this->associateBelongsToRelations($item, $data);
+
         $item->fill($data);
         $item->save();
 
