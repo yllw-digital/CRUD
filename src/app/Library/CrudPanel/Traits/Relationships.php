@@ -59,7 +59,7 @@ trait Relationships
             ->where('relation_type', $relation_types)
             ->toArray();
         }
-        if(is_array($relation_types)) {
+        if (is_array($relation_types)) {
             return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)

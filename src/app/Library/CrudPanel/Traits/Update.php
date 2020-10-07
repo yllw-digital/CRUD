@@ -22,7 +22,6 @@ trait Update
      */
     public function update($id, $data)
     {
-
         $data = $this->decodeJsonCastedAttributes($data);
         $data = $this->compactFakeFields($data);
         $item = $this->model->findOrFail($id);
