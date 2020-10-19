@@ -191,7 +191,7 @@ trait Create
 
                 //if it's an HasMany relation and we have fields setup in the main field it means it's a repeatable
                 //and developer wants to add the items to the relation.
-                if ($relationData['fields']) {
+                if (isset($relationData['fields'])) {
                     $this->createHasManyEntries($item, $relation, $relationMethod, $relationData);
                 } else {
                     $this->attachHasManyRelation($item, $relation, $relationMethod, $relationData);
@@ -207,8 +207,7 @@ trait Create
     /*
         Used to sync the relations using already stored in database entries.
      */
-    public function syncHasManyRelation($item, $relation, $relationMethod, $relationData)
-    {
+    public function attachHasManyRelation($item, $relation, $relationMethod, $relationData) {
         $modelInstance = $relation->getRelated();
         $relation_column_is_nullable = $modelInstance->isColumnNullable($relation->getForeignKeyName());
 
