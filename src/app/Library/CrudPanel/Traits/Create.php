@@ -4,6 +4,7 @@ namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 
 trait Create
@@ -186,12 +187,112 @@ trait Create
                     $modelInstance = new $model($relationData['values']);
                     $relation->save($modelInstance);
                 }
+            } elseif ($relation instanceof HasMany) {
+
+                //if it's an HasMany relation and we have fields setup in the main field it means it's a repeatable
+                //and developer wants to add the items to the relation.
+                if ($relationData['fields']) {
+                    $this->createHasManyEntries($item, $relation, $relationMethod, $relationData);
+                }else{
+                    $this->attachHasManyRelation($item, $relation, $relationMethod, $relationData);
+                }
             }
 
             if (isset($relationData['relations'])) {
                 $this->createRelationsForItem($modelInstance, ['relations' => $relationData['relations']]);
             }
         }
+    }
+
+    /*
+        Used to sync the relations using already stored in database entries.
+     */
+    public function syncHasManyRelation($item, $relation, $relationMethod, $relationData) {
+        $modelInstance = $relation->getRelated();
+        $relation_column_is_nullable = $modelInstance->isColumnNullable($relation->getForeignKeyName());
+
+        if ($relationData['values'][$relationMethod][0] !== null) {
+           //we add the new values into the relation
+           $modelInstance->whereIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
+           ->update([$relation->getForeignKeyName() => $item->{$relation->getLocalKeyName()}]);
+
+            //we clear up any values that were removed from model relation.
+            //if developer provided a fallback id, we use it
+            //if column is nullable we set it to null
+            //if none of the above we delete the model from database
+            if($relationData['fallback_id']) {
+                $modelInstance->whereNotIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
+                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
+            }else{
+                if (! $relation_column_is_nullable) {
+                    $modelInstance->whereNotIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
+                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->delete();
+                } else {
+                    $modelInstance->whereNotIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
+                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => null]);
+                }
+            }
+            } else {
+            //the developer cleared the selection
+            //we gonna clear all related values by setting up the value to the fallback id, to null or delete.
+            if($relationData['fallback_id']) {
+                $modelInstance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
+            }else{
+                if (! $relation_column_is_nullable) {
+                    $modelInstance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})->delete();
+                } else {
+                    $modelInstance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => null]);
+                }
+            }
+        }
+    }
+    /*
+        Create HasMany entries from an repeatable field type
+     */
+    public function createHasManyEntries($entry, $relation, $relationMethod, $relationData) {
+        $items = collect(json_decode($relationData['values'][$relationMethod], true));
+        $relatedId = $entry->getKey();
+        $relatedModel = $relation->getRelated();
+        $itemsInDatabase = $entry->{$relationMethod};
+        //if the collection is empty we clear all previous values in database if any.
+        if ($items->isEmpty()) {
+            $relatedModel->where($relation->getForeignKeyName(), $entry->{$relation->getLocalKeyName()})->delete();
+        }else{
+            $items->each(function(&$item, $key) use ($relatedId, $relation, $relatedModel) {
+                $item[$relation->getForeignKeyName()] = $relatedId;
+
+                if(isset($item[$relatedModel->getKeyName()]) && $item[$relatedModel->getKeyName()] !== '') {
+
+
+                        $relatedModel->where($relatedModel->getKeyName(), $item[$relation->getLocalKeyName()])->update($item);
+                }else{
+                    //we are creating, so we unset the model key from request
+                    unset($item[$relatedModel->getKeyName()]);
+
+                    $createdItem = $relatedModel->create($item);
+
+                    $item[$relatedModel->getKeyName()] = $createdItem->{$relatedModel->getKeyName()};
+                }
+            });
+
+            $relatedItemsSent = $items->pluck($relatedModel->getKeyName());
+
+            if(!$relatedItemsSent->isEmpty()) {
+                $itemsInDatabase = $entry->{$relationMethod};
+                //we perform the cleanup of removed database items
+                $itemsInDatabase->each(function($item, $key) use ($relatedItemsSent, $relation) {
+                    if (!$relatedItemsSent->contains($item->getKey())) {
+                        $item->delete();
+                    }
+                });
+            }
+        }
+
     }
 
     /**
@@ -222,12 +323,19 @@ trait Create
             if (! is_null(Arr::get($data, $attributeKey)) && isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
                 $key = implode('.relations.', explode('.', $this->getOnlyRelationEntity($relation_field)));
                 $fieldData = Arr::get($relationData, 'relations.'.$key, []);
-                if (! array_key_exists('model', $fieldData)) {
-                    $fieldData['model'] = $relation_field['model'];
+
+                $fieldData['model'] = $relation_field['model'];
+
+                $fieldData['parent'] = $this->getRelationModel($attributeKey, -1);
+
+                if (array_key_exists('fallback_id', $relation_field)) {
+                    $fieldData['fallback_id'] = $relation_field['fallback_id'];
                 }
-                if (! array_key_exists('parent', $fieldData)) {
-                    $fieldData['parent'] = $this->getRelationModel($attributeKey, -1);
+
+                if (array_key_exists('fields', $relation_field)) {
+                    $fieldData['fields'] = $relation_field['fields'];
                 }
+
                 $relatedAttribute = Arr::last(explode('.', $attributeKey));
                 $fieldData['values'][$relatedAttribute] = Arr::get($data, $attributeKey);
 
