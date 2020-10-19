@@ -207,7 +207,8 @@ trait Create
     /*
         Used to sync the relations using already stored in database entries.
      */
-    public function attachHasManyRelation($item, $relation, $relationMethod, $relationData) {
+    public function attachHasManyRelation($item, $relation, $relationMethod, $relationData)
+    {
         $modelInstance = $relation->getRelated();
         $relation_column_is_nullable = $modelInstance->isColumnNullable($relation->getForeignKeyName());
 
