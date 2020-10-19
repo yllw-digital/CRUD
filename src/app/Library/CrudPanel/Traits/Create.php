@@ -3,8 +3,8 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
 
 trait Create
@@ -193,7 +193,7 @@ trait Create
                 //and developer wants to add the items to the relation.
                 if ($relationData['fields']) {
                     $this->createHasManyEntries($item, $relation, $relationMethod, $relationData);
-                }else{
+                } else {
                     $this->attachHasManyRelation($item, $relation, $relationMethod, $relationData);
                 }
             }
@@ -207,24 +207,25 @@ trait Create
     /*
         Used to sync the relations using already stored in database entries.
      */
-    public function syncHasManyRelation($item, $relation, $relationMethod, $relationData) {
+    public function syncHasManyRelation($item, $relation, $relationMethod, $relationData)
+    {
         $modelInstance = $relation->getRelated();
         $relation_column_is_nullable = $modelInstance->isColumnNullable($relation->getForeignKeyName());
 
         if ($relationData['values'][$relationMethod][0] !== null) {
-           //we add the new values into the relation
-           $modelInstance->whereIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
+            //we add the new values into the relation
+            $modelInstance->whereIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
            ->update([$relation->getForeignKeyName() => $item->{$relation->getLocalKeyName()}]);
 
             //we clear up any values that were removed from model relation.
             //if developer provided a fallback id, we use it
             //if column is nullable we set it to null
             //if none of the above we delete the model from database
-            if($relationData['fallback_id']) {
+            if ($relationData['fallback_id']) {
                 $modelInstance->whereNotIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
                             ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
                             ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
-            }else{
+            } else {
                 if (! $relation_column_is_nullable) {
                     $modelInstance->whereNotIn($modelInstance->getKeyName(), $relationData['values'][$relationMethod])
                             ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
@@ -235,13 +236,13 @@ trait Create
                             ->update([$relation->getForeignKeyName() => null]);
                 }
             }
-            } else {
+        } else {
             //the developer cleared the selection
             //we gonna clear all related values by setting up the value to the fallback id, to null or delete.
-            if($relationData['fallback_id']) {
+            if ($relationData['fallback_id']) {
                 $modelInstance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
                             ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
-            }else{
+            } else {
                 if (! $relation_column_is_nullable) {
                     $modelInstance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})->delete();
                 } else {
@@ -251,10 +252,12 @@ trait Create
             }
         }
     }
+
     /*
         Create HasMany entries from an repeatable field type
      */
-    public function createHasManyEntries($entry, $relation, $relationMethod, $relationData) {
+    public function createHasManyEntries($entry, $relation, $relationMethod, $relationData)
+    {
         $items = collect(json_decode($relationData['values'][$relationMethod], true));
         $relatedId = $entry->getKey();
         $relatedModel = $relation->getRelated();
@@ -262,15 +265,13 @@ trait Create
         //if the collection is empty we clear all previous values in database if any.
         if ($items->isEmpty()) {
             $relatedModel->where($relation->getForeignKeyName(), $entry->{$relation->getLocalKeyName()})->delete();
-        }else{
-            $items->each(function(&$item, $key) use ($relatedId, $relation, $relatedModel) {
+        } else {
+            $items->each(function (&$item, $key) use ($relatedId, $relation, $relatedModel) {
                 $item[$relation->getForeignKeyName()] = $relatedId;
 
-                if(isset($item[$relatedModel->getKeyName()]) && $item[$relatedModel->getKeyName()] !== '') {
-
-
-                        $relatedModel->where($relatedModel->getKeyName(), $item[$relation->getLocalKeyName()])->update($item);
-                }else{
+                if (isset($item[$relatedModel->getKeyName()]) && $item[$relatedModel->getKeyName()] !== '') {
+                    $relatedModel->where($relatedModel->getKeyName(), $item[$relation->getLocalKeyName()])->update($item);
+                } else {
                     //we are creating, so we unset the model key from request
                     unset($item[$relatedModel->getKeyName()]);
 
@@ -282,17 +283,16 @@ trait Create
 
             $relatedItemsSent = $items->pluck($relatedModel->getKeyName());
 
-            if(!$relatedItemsSent->isEmpty()) {
+            if (! $relatedItemsSent->isEmpty()) {
                 $itemsInDatabase = $entry->{$relationMethod};
                 //we perform the cleanup of removed database items
-                $itemsInDatabase->each(function($item, $key) use ($relatedItemsSent, $relation) {
-                    if (!$relatedItemsSent->contains($item->getKey())) {
+                $itemsInDatabase->each(function ($item, $key) use ($relatedItemsSent) {
+                    if (! $relatedItemsSent->contains($item->getKey())) {
                         $item->delete();
                     }
                 });
             }
         }
-
     }
 
     /**
