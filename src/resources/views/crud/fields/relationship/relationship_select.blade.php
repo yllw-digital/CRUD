@@ -76,7 +76,7 @@
         multiple
         @endif
         >
-        @if ($field['allows_null'])
+        @if ($field['allows_null'] && !$field['multiple'])
             <option value="">-</option>
         @endif
 
