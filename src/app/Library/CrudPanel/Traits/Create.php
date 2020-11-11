@@ -93,6 +93,7 @@ trait Create
         foreach ($belongsToFields as $relationField) {
             $item->{$this->getOnlyRelationEntity($relationField)}()->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
         }
+
         return $item;
     }
 
