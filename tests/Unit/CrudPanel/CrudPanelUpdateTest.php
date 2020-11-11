@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\Unit\Models\User;
+use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
 use Faker\Factory;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +48,15 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         ],
     ];
 
+    private $userInputHasOneRelation = [
+        [
+            'name' => 'accountDetails.nickname',
+        ],
+        [
+            'name' => 'accountDetails.profile_picture',
+        ],
+    ];
+
     public function testUpdate()
     {
         $this->crudPanel->setModel(User::class);
@@ -62,6 +72,30 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 
         $this->assertInstanceOf(User::class, $entry);
         $this->assertEntryEquals($inputData, $entry);
+    }
+
+    public function testUpdateExistingOneToOneRelationship()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFields);
+        $this->crudPanel->addFields($this->userInputHasOneRelation);
+        $user = User::find(1)->load('accountDetails');
+        $this->assertInstanceOf(AccountDetails::class, $user->accountDetails);
+        $faker = Factory::create();
+        $inputData = [
+            'name'     => $user->name,
+            'email'    => $user->email,
+            'accountDetails' => [
+                'profile_picture' => 'test_updated.jpg',
+            ],
+        ];
+        $entry = $this->crudPanel->update(1, $inputData);
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertEquals('test_updated.jpg', $entry->accountDetails->profile_picture);
+
     }
 
     public function testUpdateUnknownId()

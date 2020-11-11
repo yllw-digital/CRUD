@@ -209,8 +209,14 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
             ],
         ];
         $entry = $this->crudPanel->create($inputData);
-        $this->markTestIncomplete('Has one relation is not created in tests.');
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertEquals('test.jpg', $entry->accountDetails->profile_picture);
     }
+
+
 
     public function testCreateWithOneToManyRelationship()
     {

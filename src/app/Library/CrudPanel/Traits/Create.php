@@ -195,13 +195,7 @@ trait Create
             $relation = $item->{$relationMethod}();
 
             if ($relation instanceof HasOne) {
-                if ($item->{$relationMethod} != null) {
-                    $item->{$relationMethod}->update($relationData['values']);
-                    $modelInstance = $item->{$relationMethod};
-                } else {
-                    $modelInstance = new $model($relationData['values']);
-                    $relation->save($modelInstance);
-                }
+               $modelInstance = $relation->updateOrCreate([], $relationData['values']);
             }
 
             if (isset($relationData['relations'])) {
