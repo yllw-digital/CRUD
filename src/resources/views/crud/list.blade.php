@@ -145,6 +145,12 @@
   <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/form.css') }}">
   <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/list.css') }}">
 
+  @if ($crud->getHideTableButtonsText())
+  <style>
+    #crudTable .btn span { display: none; }
+  </style>
+  @endif
+
   <!-- CRUD LIST CONTENT - crud_list_styles stack -->
   @stack('crud_list_styles')
 @endsection

@@ -62,6 +62,10 @@ return [
             // thus clearing any searching, filtering or pagination that has been
             // remembered and persisted using persistentTable
             'resetButton' => true,
+
+            // Hide list action button labels keeping only the icon
+            // Labels occupy some space on the table and icons may be enough in some usecases
+            'hideTableButtonsText' => true,
         ],
 
         /*
