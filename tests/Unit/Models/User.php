@@ -20,7 +20,8 @@ class User extends Model
         return $this->hasOne('Backpack\CRUD\Tests\Unit\Models\AccountDetails');
     }
 
-    public function article() {
+    public function article()
+    {
         return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\Article');
     }
 
