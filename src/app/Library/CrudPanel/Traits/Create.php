@@ -88,11 +88,11 @@ trait Create
      */
     public function associateBelongsToRelations($item, array $data)
     {
-        foreach ($this->getFieldsWithRelationType('BelongsTo') as $relationField) {
-            $item->{$this->getOnlyRelationEntity($relationField)}()
-                ->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
-        }
+        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
 
+        foreach ($belongsToFields as $relationField) {
+            $item->{$this->getOnlyRelationEntity($relationField)}()->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
+        }
         return $item;
     }
 

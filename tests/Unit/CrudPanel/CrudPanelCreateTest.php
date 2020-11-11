@@ -4,6 +4,9 @@ namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\Unit\Models\Article;
 use Backpack\CRUD\Tests\Unit\Models\User;
+use Backpack\CRUD\Tests\Unit\Models\Address;
+use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
+
 use Faker\Factory;
 use Illuminate\Support\Arr;
 
@@ -28,6 +31,8 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
             'type' => 'password',
         ],
     ];
+
+
 
     private $articleInputFieldsOneToMany = [
         [
@@ -103,6 +108,36 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         ],
     ];
 
+    private $articleBelongsToWithRelationName = [
+        [
+            'name' => 'user',
+            'type' => 'relationship'
+        ],
+        [
+            'name' => 'address',
+            'type' => 'relationship'
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelatedKey = [
+        [
+            'name' => 'user_id',
+            'type' => 'relationship'
+        ],
+        [
+            'name' => 'address_id',
+            'type' => 'relationship'
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
     public function testCreate()
     {
         $this->crudPanel->setModel(User::class);
@@ -121,9 +156,43 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertEmpty($entry->articles);
     }
 
-    /**
-     * @group failing
-     */
+
+    public function testCreateBelongsToWithRelationName()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleBelongsToWithRelationName);
+        $faker = Factory::create();
+        $inputData = [
+            'user'     => 1,
+            'content'    => $faker->text,
+            'address' => 1
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertInstanceOf(Address::class, $entry->address);
+        $this->assertInstanceOf(User::class, $entry->user);
+
+    }
+
+    public function testCreateBelongsToWithRelationKey()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleBelongsToWithRelatedKey);
+        $faker = Factory::create();
+        $inputData = [
+            'user_id'     => 1,
+            'content'    => $faker->text,
+            'address_id' => 1
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertInstanceOf(Address::class, $entry->address);
+        $this->assertInstanceOf(User::class, $entry->user);
+
+    }
+
     public function testCreateWithOneToOneRelationship()
     {
         $this->crudPanel->setModel(User::class);

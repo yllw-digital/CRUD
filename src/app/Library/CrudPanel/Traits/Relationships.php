@@ -47,24 +47,17 @@ trait Relationships
     /**
      * Get the fields with specific relation types.
      *
-     * @param string|array $relation_types
+     * @param array|string $relation_types
      *
      * @return array The fields with corresponding relation types.
      */
     public function getFieldsWithRelationType($relation_types): array
     {
-        if (is_string($relation_types)) {
-            return collect($this->fields())
-            ->where('model')
-            ->where('relation_type', $relation_types)
-            ->toArray();
-        }
-        if (is_array($relation_types)) {
-            return collect($this->fields())
+        $relation_types = is_array($relation_types) ?: (array)$relation_types;
+        return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)
             ->toArray();
-        }
     }
 
     /**
