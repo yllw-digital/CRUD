@@ -53,7 +53,8 @@ trait Relationships
      */
     public function getFieldsWithRelationType($relation_types): array
     {
-        $relation_types = is_array($relation_types) ?: (array)$relation_types;
+        $relation_types = is_array($relation_types) ?: (array) $relation_types;
+
         return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)

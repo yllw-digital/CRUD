@@ -93,6 +93,7 @@ trait Create
         foreach ($belongsToFields as $relationField) {
             $item->{$this->getOnlyRelationEntity($relationField)}()->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
         }
+
         return $item;
     }
 
@@ -195,7 +196,7 @@ trait Create
             $relation = $item->{$relationMethod}();
 
             if ($relation instanceof HasOne) {
-               $modelInstance = $relation->updateOrCreate([], $relationData['values']);
+                $modelInstance = $relation->updateOrCreate([], $relationData['values']);
             }
 
             if (isset($relationData['relations'])) {

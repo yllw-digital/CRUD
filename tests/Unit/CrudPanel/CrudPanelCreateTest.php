@@ -2,11 +2,10 @@
 
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
+use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
+use Backpack\CRUD\Tests\Unit\Models\Address;
 use Backpack\CRUD\Tests\Unit\Models\Article;
 use Backpack\CRUD\Tests\Unit\Models\User;
-use Backpack\CRUD\Tests\Unit\Models\Address;
-use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
-
 use Faker\Factory;
 use Illuminate\Support\Arr;
 
@@ -31,8 +30,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
             'type' => 'password',
         ],
     ];
-
-
 
     private $articleInputFieldsOneToMany = [
         [
@@ -111,11 +108,11 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
     private $articleBelongsToWithRelationName = [
         [
             'name' => 'user',
-            'type' => 'relationship'
+            'type' => 'relationship',
         ],
         [
             'name' => 'address',
-            'type' => 'relationship'
+            'type' => 'relationship',
         ],
         [
             'name' => 'content',
@@ -126,11 +123,11 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
     private $articleBelongsToWithRelatedKey = [
         [
             'name' => 'user_id',
-            'type' => 'relationship'
+            'type' => 'relationship',
         ],
         [
             'name' => 'address_id',
-            'type' => 'relationship'
+            'type' => 'relationship',
         ],
         [
             'name' => 'content',
@@ -156,7 +153,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertEmpty($entry->articles);
     }
 
-
     public function testCreateBelongsToWithRelationName()
     {
         $this->crudPanel->setModel(Article::class);
@@ -165,14 +161,13 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $inputData = [
             'user'     => 1,
             'content'    => $faker->text,
-            'address' => 1
+            'address' => 1,
         ];
 
         $entry = $this->crudPanel->create($inputData);
 
         $this->assertInstanceOf(Address::class, $entry->address);
         $this->assertInstanceOf(User::class, $entry->user);
-
     }
 
     public function testCreateBelongsToWithRelationKey()
@@ -183,14 +178,13 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $inputData = [
             'user_id'     => 1,
             'content'    => $faker->text,
-            'address_id' => 1
+            'address_id' => 1,
         ];
 
         $entry = $this->crudPanel->create($inputData);
 
         $this->assertInstanceOf(Address::class, $entry->address);
         $this->assertInstanceOf(User::class, $entry->user);
-
     }
 
     public function testCreateWithOneToOneRelationship()
@@ -215,8 +209,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
         $this->assertEquals('test.jpg', $entry->accountDetails->profile_picture);
     }
-
-
 
     public function testCreateWithOneToManyRelationship()
     {
