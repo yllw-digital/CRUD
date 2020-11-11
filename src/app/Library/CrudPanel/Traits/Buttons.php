@@ -255,7 +255,7 @@ trait Buttons
     }
 
     /**
-     * Hide table buttons text
+     * Hide table buttons text.
      *
      * @param bool $value
      */
@@ -265,7 +265,7 @@ trait Buttons
     }
 
     /**
-     * Hide table buttons text
+     * Hide table buttons text.
      *
      * @param bool $value
      */
