@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
+use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
 use Backpack\CRUD\Tests\Unit\Models\Address;
 use Backpack\CRUD\Tests\Unit\Models\Article;
 use Backpack\CRUD\Tests\Unit\Models\User;
@@ -208,8 +209,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
         $this->assertEquals('test.jpg', $entry->accountDetails->profile_picture);
     }
-
-
 
     public function testCreateWithOneToManyRelationship()
     {
