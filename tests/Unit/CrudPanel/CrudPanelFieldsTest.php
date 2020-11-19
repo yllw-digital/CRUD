@@ -561,7 +561,8 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertEquals($field['relation_type'], 'HasMany');
     }
 
-    public function testCanGetRelationFieldsBySingleRelation() {
+    public function testCanGetRelationFieldsBySingleRelation()
+    {
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('roles');
         $this->crudPanel->addField('accountDetails.nickname');
@@ -569,7 +570,8 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertCount(1, $relationField);
     }
 
-    public function testCanGetRelationFieldsByArrayOfRelations() {
+    public function testCanGetRelationFieldsByArrayOfRelations()
+    {
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('roles');
         $this->crudPanel->addField('accountDetails.nickname');
