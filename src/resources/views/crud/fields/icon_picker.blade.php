@@ -1,6 +1,6 @@
 <!-- icon picker input -->
 @php
-    // if no iconset was provided, set the default iconset to Font-Awesome
+    // if no iconset was provided, set the default iconset to Line-Awesome
     $field['iconset'] = $field['iconset'] ?? 'fontawesome';
 
     switch ($field['iconset']) {
@@ -61,7 +61,7 @@
     because if parent crud has a different icon file than inline, the inline one would not be loaded
     --}}
 @push('crud_fields_styles')
-<link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
+        <link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
 @endpush
 
 @if ($crud->fieldTypeNotLoaded($field))
@@ -72,7 +72,7 @@
     {{-- FIELD EXTRA CSS  --}}
     @push('crud_fields_styles')
         {{-- The chosen font --}}
-        <link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
+            <link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
         <!-- Bootstrap-Iconpicker -->
         <link rel="stylesheet" href="{{ asset('packages/bootstrap-iconpicker/bootstrap-iconpicker/css/bootstrap-iconpicker.min.css') }}"/>
     @endpush
@@ -88,17 +88,49 @@
                 var $iconset = element.attr('data-iconset');
                 var $iconButton = element.siblings('button[role=icon-selector]');
                 var $icon = element.attr('value');
+                var $icons = null;
+                var $customIconSet = null;
+
+                // if the iconset is lineawesome we create our own iconset for the iconpicker.
+                if($iconset == 'lineawesome') {
+                    // we store it in global window object to avoid fetching the same information again
+                    // in case we have two or more iconpickers with lineawesome
+                    if(typeof window.icon_pickerLineIcons === "undefined") {
+                        $.ajax({
+                            url: "{{asset('packages/backpack/crud/js/fields/iconpicker/line-icons.json')}}",
+                            dataType: 'json',
+                            async: false,
+                            success: function(icons){
+                                window.icon_pickerLineIcons = icons;
+                                $icons = icons;
+                            }
+                        }).fail(function() { alert('to use lineawesome you need to republish crud assets.') });
+                    }else{
+                        $icons = window.icon_pickerLineIcons;
+                    }
+                    if($icons !== null) {
+                        $customIconSet = {
+                            iconClass: '',
+                            iconClassFix: '',
+                            icons: $icons
+                        }
+
+                    }
+                }
+
+                // in case we have a custom set we use it instead of the default iconset.
+                $iconset = $customIconSet !== null ? $customIconSet : $iconset;
 
                 // we explicit init the iconpicker on the button element.
                 // this way we can init the iconpicker in InlineCreate as in future provide aditional configurations.
-                    $($iconButton).iconpicker({
-                        iconset: $iconset,
-                        icon: $icon
-                    });
+                $($iconButton).iconpicker({
+                    iconset: $iconset,
+                    icon: $icon
+                });
 
-                    element.siblings('button[role=icon-selector]').on('change', function(e) {
-                        $(this).siblings('input[type=hidden]').val(e.icon);
-                    });
+                element.siblings('button[role=icon-selector]').on('change', function(e) {
+                    $(this).siblings('input[type=hidden]').val(e.icon);
+                });
             }
         </script>
     @endpush
