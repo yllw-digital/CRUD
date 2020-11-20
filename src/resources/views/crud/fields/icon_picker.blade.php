@@ -80,41 +80,31 @@
     {{-- FIELD EXTRA JS --}}
     @push('crud_fields_scripts')
         <!-- Bootstrap-Iconpicker -->
-        <script type="text/javascript" src="{{ asset('packages/bootstrap-iconpicker/bootstrap-iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
 
+        <script type="text/javascript" src="{{ asset('packages/bootstrap-iconpicker/bootstrap-iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
+        @if($field['iconset'] == 'lineawesome')
+            <script type="text/javascript" src="{{ asset('packages/backpack/crud/js/fields/iconpicker/line-icons.js') }}"></script>
+        @endif
         {{-- Bootstrap-Iconpicker - set hidden input value --}}
         <script>
             function bpFieldInitIconPickerElement(element) {
                 var $iconset = element.attr('data-iconset');
                 var $iconButton = element.siblings('button[role=icon-selector]');
                 var $icon = element.attr('value');
-                var $icons = null;
                 var $customIconSet = null;
 
                 // if the iconset is lineawesome we create our own iconset for the iconpicker.
                 if($iconset == 'lineawesome') {
                     // we store it in global window object to avoid fetching the same information again
                     // in case we have two or more iconpickers with lineawesome
-                    if(typeof window.icon_pickerLineIcons === "undefined") {
-                        $.ajax({
-                            url: "{{asset('packages/backpack/crud/js/fields/iconpicker/line-icons.json')}}",
-                            dataType: 'json',
-                            async: false,
-                            success: function(icons){
-                                window.icon_pickerLineIcons = icons;
-                                $icons = icons;
-                            }
-                        }).fail(function() { alert('to use lineawesome you need to republish crud assets.') });
-                    }else{
-                        $icons = window.icon_pickerLineIcons;
-                    }
-                    if($icons !== null) {
+                    if(typeof window.icon_pickerLineIcons !== "undefined") {
                         $customIconSet = {
                             iconClass: '',
                             iconClassFix: '',
-                            icons: $icons
+                            icons: window.icon_pickerLineIcons
                         }
-
+                    }else{
+                        alert('to use lineawesome with iconpicker you need to republish crud assets.')
                     }
                 }
 
