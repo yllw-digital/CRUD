@@ -14,6 +14,7 @@ trait Relationships
      */
     public function getRelationInstance($field)
     {
+        //dd($field);
         $entity = $this->getOnlyRelationEntity($field);
         $entity_array = explode('.', $entity);
         $relation_model = $this->getRelationModel($entity);
@@ -40,7 +41,7 @@ trait Relationships
                 return $this->model->{$related_method}();
             }
         }
-
+        //dd($relation_model);
         return $relation_model->{$related_method}();
     }
 
@@ -177,4 +178,17 @@ trait Relationships
                 return false;
         }
     }
+    /**
+     * Check if field name contains a dot, if so, meaning it's a nested relation.
+     *
+     * @param array $field
+     * @return boolean
+     */
+    protected function isNestedRelation($field): bool {
+        if (strpos($field['entity'], '.') !== false) {
+            return true;
+        }
+        return false;
+    }
+
 }
