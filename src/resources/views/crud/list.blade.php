@@ -147,7 +147,10 @@
 
   @if ($crud->getOperationSetting('hideTableButtonsText') ?? config('backpack.crud.operations.list.hideTableButtonsText', false))
   <style>
-    #crudTable .btn span { display: none; }
+    @media screen and (min-width: 1025px) {
+      #crudTable .btn span { display: none; }
+      #crudTable .btn { font-size: 1rem; }
+    }
   </style>
   @endif
 
