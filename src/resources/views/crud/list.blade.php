@@ -145,7 +145,7 @@
   <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/form.css') }}">
   <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/list.css') }}">
 
-  @if ($crud->getHideTableButtonsText())
+  @if ($crud->getOperationSetting('hideTableButtonsText') ?? config('backpack.crud.operations.list.hideTableButtonsText', false))
   <style>
     #crudTable .btn span { display: none; }
   </style>

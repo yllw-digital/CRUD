@@ -253,34 +253,4 @@ trait Buttons
     {
         return new CrudButton($attributes);
     }
-
-    /**
-     * Hide table buttons text.
-     *
-     * @param bool $value
-     */
-    public function hideTableButtonsText()
-    {
-        return $this->setOperationSetting('hideTableButtonsText', true);
-    }
-
-    /**
-     * Hide table buttons text.
-     *
-     * @param bool $value
-     */
-    public function showTableButtonsText()
-    {
-        return $this->setOperationSetting('hideTableButtonsText', false);
-    }
-
-    /**
-     * Check if saved state is enabled for the table view.
-     *
-     * @return bool
-     */
-    public function getHideTableButtonsText()
-    {
-        return $this->getOperationSetting('hideTableButtonsText') ?? config('backpack.crud.operations.list.hideTableButtonsText');
-    }
 }
