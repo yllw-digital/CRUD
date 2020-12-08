@@ -33,10 +33,10 @@ trait Create
         $item = $this->model->make(Arr::except($data, $nn_relationships));
 
         // handle BelongsTo 1:1 relations
-        $item = $this->associateBelongsToRelations($item, $data);
+        $item = $this->associateOrDissociateBelongsToRelations($item, $data);
         $item->save();
 
-        // if there are any relationships available, also sync those
+        // if there are any other relations create them.
         $this->createRelations($item, $data);
 
         return $item;
@@ -146,7 +146,7 @@ trait Create
     }
 
     /**
-     * Create any existing one to one relations for the current model from the form data.
+     * Create any existing one to one relations and subsquent relations for the item.
      *
      * @param \Illuminate\Database\Eloquent\Model $item The current CRUD model.
      * @param array                               $data The form data.
@@ -158,7 +158,7 @@ trait Create
     }
 
     /**
-     * Create any existing one to one relations for the current model from the relation data.
+     * Create any existing one to one relations and subsquent relations from form data.
      *
      * @param \Illuminate\Database\Eloquent\Model $item          The current CRUD model.
      * @param array                               $formattedData The form data.
@@ -174,16 +174,25 @@ trait Create
             if (! isset($relationData['model'])) {
                 continue;
             }
-            $model = $relationData['model'];
+
             $relation = $item->{$relationMethod}();
 
             if ($relation instanceof HasOne) {
-                if ($item->{$relationMethod} != null) {
-                    $item->{$relationMethod}->update($relationData['values']);
-                    $modelInstance = $item->{$relationMethod};
+                if (isset($relationData['relations'])) {
+                    $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
+                        return $relation_data['relation_type'] == 'BelongsTo';
+                    });
+                    // adds the values of the BelongsTo relations of this entity to the array of values that will
+                    // be saved at the same time like we do in parent entity belongs to relations
+                    $valuesWithRelations = $this->associateHasOneBelongsTo($belongsToRelations, $relationData['values'], $relation->getModel());
+
+                    $relationData['relations'] = Arr::where($relationData['relations'], function ($item) {
+                        return $item['relation_type'] != 'BelongsTo';
+                    });
+
+                    $modelInstance = $relation->updateOrCreate([], $valuesWithRelations);
                 } else {
-                    $modelInstance = new $model($relationData['values']);
-                    $relation->save($modelInstance);
+                    $modelInstance = $relation->updateOrCreate([], $relationData['values']);
                 }
             }
 
@@ -191,6 +200,16 @@ trait Create
                 $this->createRelationsForItem($modelInstance, ['relations' => $relationData['relations']]);
             }
         }
+    }
+
+    private function associateHasOneBelongsTo($belongsToRelations, $modelValues, $modelInstance)
+    {
+        foreach ($belongsToRelations as $methodName => $values) {
+            $relation = $modelInstance->{$methodName}();
+            $modelValues[$relation->getForeignKeyName()] = $values['values'][$methodName];
+        }
+
+        return $modelValues;
     }
 
     /**
@@ -213,12 +232,16 @@ trait Create
      */
     private function getRelationDataFromFormData($data)
     {
-        $relation_fields = $this->getRelationFields();
+        // exclude the already attached belongs to relations but include nested belongs to.
+        $relation_fields = Arr::where($this->getRelationFields(), function ($field, $key) {
+            return $field['relation_type'] !== 'BelongsTo' || $this->isNestedRelation($field);
+        });
+
         $relationData = [];
+
         foreach ($relation_fields as $relation_field) {
             $attributeKey = $this->parseRelationFieldNamesFromHtml([$relation_field])[0]['name'];
-
-            if (! is_null(Arr::get($data, $attributeKey)) && isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
+            if (isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
                 $key = implode('.relations.', explode('.', $this->getOnlyRelationEntity($relation_field)));
                 $fieldData = Arr::get($relationData, 'relations.'.$key, []);
                 if (! array_key_exists('model', $fieldData)) {
@@ -226,6 +249,10 @@ trait Create
                 }
                 if (! array_key_exists('parent', $fieldData)) {
                     $fieldData['parent'] = $this->getRelationModel($attributeKey, -1);
+                }
+
+                if (! array_key_exists('relation_type', $fieldData)) {
+                    $fieldData['relation_type'] = $relation_field['relation_type'];
                 }
                 $relatedAttribute = Arr::last(explode('.', $attributeKey));
                 $fieldData['values'][$relatedAttribute] = Arr::get($data, $attributeKey);

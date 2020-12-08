@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 trait Relationships
 {
@@ -45,7 +46,7 @@ trait Relationships
     }
 
     /**
-     * Get the fields with specific relation types.
+     * Get the fields with specific relation types that are not nested relations.
      *
      * @param array|string $relation_types
      *
@@ -58,6 +59,9 @@ trait Relationships
         return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)
+            ->filter(function ($item) {
+                return Str::contains($item['entity'], '.') ? false : true;
+            })
             ->toArray();
     }
 
@@ -179,7 +183,22 @@ trait Relationships
     }
 
     /**
-     * Associate and dissociate the BelongsTo relations in primary model
+     * Check if field name contains a dot, if so, meaning it's a nested relation.
+     *
+     * @param array $field
+     * @return bool
+     */
+    protected function isNestedRelation($field): bool
+    {
+        if (strpos($field['entity'], '.') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Associate and dissociate BelongsTo relations in the model.
      *
      * @param  Model
      * @param  array The form data.
