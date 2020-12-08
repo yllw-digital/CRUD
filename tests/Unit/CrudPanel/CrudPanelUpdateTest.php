@@ -3,11 +3,11 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
+use Backpack\CRUD\Tests\Unit\Models\Article;
 use Backpack\CRUD\Tests\Unit\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
-use Backpack\CRUD\Tests\Unit\Models\Article;
 
 class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 {
@@ -67,7 +67,7 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         ],
         [
             'name' => 'accountDetails.article',
-            'type' => 'relationship'
+            'type' => 'relationship',
         ],
 
     ];
@@ -88,8 +88,9 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->assertInstanceOf(User::class, $entry);
         $this->assertEntryEquals($inputData, $entry);
     }
+
     /**
-     * Undocumented function
+     * Undocumented function.
      *
      * @group failing
      */
@@ -119,7 +120,7 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
     }
 
     /**
-     * Undocumented function
+     * Undocumented function.
      *
      * @group failing
      */
@@ -137,7 +138,7 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
             'accountDetails' => [
                 'nickname' => $faker->name,
                 'profile_picture' => 'test.jpg',
-                'article' => $article->id
+                'article' => $article->id,
             ],
         ];
 
@@ -155,7 +156,7 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
             'accountDetails' => [
                 'nickname' => $faker->name,
                 'profile_picture' => 'test.jpg',
-                'article' => null
+                'article' => null,
             ],
         ];
 
@@ -165,7 +166,6 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 
         $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
         $this->assertNull($entry->accountDetails->article);
-
     }
 
     public function testUpdateUnknownId()

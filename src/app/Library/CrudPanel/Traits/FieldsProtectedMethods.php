@@ -152,7 +152,7 @@ trait FieldsProtectedMethods
     }
 
     /**
-     * If field entity is provided, infer the relationship data from the relation
+     * If field entity is provided, infer the relationship data from the relation.
      *
      * @param array $field
      * @return array|void
@@ -178,7 +178,7 @@ trait FieldsProtectedMethods
     /**
      * If field entity contains a dot, we know we are dealing with a relationship.
      * If that relation is HasOne we want to ovewrite the field name so
-     * we will have the connected key as part of the field name
+     * we will have the connected key as part of the field name.
      *
      * @param array $field
      * @return array

@@ -114,7 +114,7 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         ],
         [
             'name' => 'accountDetails.article',
-            'type' => 'relationship'
+            'type' => 'relationship',
         ],
 
     ];
@@ -200,8 +200,9 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertInstanceOf(Address::class, $entry->address);
         $this->assertInstanceOf(User::class, $entry->user);
     }
+
     /**
-     * Undocumented function
+     * Undocumented function.
      *
      * @group failing
      */
@@ -229,7 +230,7 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
     }
 
     /**
-     * Undocumented function
+     * Undocumented function.
      *
      * @group failing
      */
@@ -247,7 +248,7 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
             'accountDetails' => [
                 'nickname' => $faker->name,
                 'profile_picture' => 'test.jpg',
-                'article' => $article->id
+                'article' => $article->id,
             ],
         ];
 
