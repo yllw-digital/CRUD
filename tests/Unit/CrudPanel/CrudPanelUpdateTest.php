@@ -7,6 +7,7 @@ use Backpack\CRUD\Tests\Unit\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Backpack\CRUD\Tests\Unit\Models\Article;
 
 class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 {
@@ -57,6 +58,20 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         ],
     ];
 
+    private $userInputHasOneWithBelongsToRelation = [
+        [
+            'name' => 'accountDetails.nickname',
+        ],
+        [
+            'name' => 'accountDetails.profile_picture',
+        ],
+        [
+            'name' => 'accountDetails.article',
+            'type' => 'relationship'
+        ],
+
+    ];
+
     public function testUpdate()
     {
         $this->crudPanel->setModel(User::class);
@@ -73,7 +88,11 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->assertInstanceOf(User::class, $entry);
         $this->assertEntryEquals($inputData, $entry);
     }
-
+    /**
+     * Undocumented function
+     *
+     * @group failing
+     */
     public function testUpdateExistingOneToOneRelationship()
     {
         $this->crudPanel->setModel(User::class);
@@ -81,20 +100,72 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->crudPanel->addFields($this->userInputHasOneRelation);
         $user = User::find(1)->load('accountDetails');
         $this->assertInstanceOf(AccountDetails::class, $user->accountDetails);
-        $faker = Factory::create();
+
         $inputData = [
             'name'     => $user->name,
             'email'    => $user->email,
             'accountDetails' => [
                 'profile_picture' => 'test_updated.jpg',
+                'nickname' => 'i_have_has_one',
             ],
         ];
+
         $entry = $this->crudPanel->update(1, $inputData);
 
         $entry->load('accountDetails');
 
         $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
         $this->assertEquals('test_updated.jpg', $entry->accountDetails->profile_picture);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @group failing
+     */
+    public function testClearBelongsToRelationInOneToOneRelationship()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFields);
+        $this->crudPanel->addFields($this->userInputHasOneWithBelongsToRelation);
+        $article = Article::first();
+        $faker = Factory::create();
+        $inputData = [
+            'name'     => $faker->name,
+            'email'    => $faker->safeEmail,
+            'password' => bcrypt($faker->password()),
+            'accountDetails' => [
+                'nickname' => $faker->name,
+                'profile_picture' => 'test.jpg',
+                'article' => $article->id
+            ],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertInstanceOf(Article::class, $entry->accountDetails->article);
+
+        $inputData = [
+            'name'     => $faker->name,
+            'email'    => $faker->safeEmail,
+            'password' => bcrypt($faker->password()),
+            'accountDetails' => [
+                'nickname' => $faker->name,
+                'profile_picture' => 'test.jpg',
+                'article' => null
+            ],
+        ];
+
+        $this->crudPanel->update($entry->id, $inputData);
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertNull($entry->accountDetails->article);
+
     }
 
     public function testUpdateUnknownId()

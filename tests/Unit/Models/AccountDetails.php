@@ -10,7 +10,7 @@ class AccountDetails extends Model
     use CrudTrait;
 
     protected $table = 'account_details';
-    protected $fillable = ['user_id', 'nickname', 'profile_picture'];
+    protected $fillable = ['user_id', 'nickname', 'profile_picture','article_id'];
 
     /**
      * Get the user for the account details.
@@ -25,8 +25,14 @@ class AccountDetails extends Model
         return $this->hasMany('Backpack\CRUD\Tests\Unit\Models\Address');
     }
 
+    public function article() {
+        return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\Article');
+    }
+
     public function getNicknameComposedAttribute()
     {
         return $this->nickname.'++';
     }
+
+
 }

@@ -3,6 +3,8 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+
 
 trait Relationships
 {
@@ -14,7 +16,6 @@ trait Relationships
      */
     public function getRelationInstance($field)
     {
-        //dd($field);
         $entity = $this->getOnlyRelationEntity($field);
         $entity_array = explode('.', $entity);
         $relation_model = $this->getRelationModel($entity);
@@ -41,12 +42,11 @@ trait Relationships
                 return $this->model->{$related_method}();
             }
         }
-        //dd($relation_model);
         return $relation_model->{$related_method}();
     }
 
     /**
-     * Get the fields with specific relation types.
+     * Get the fields with specific relation types that are not nested relations
      *
      * @param array|string $relation_types
      *
@@ -59,6 +59,9 @@ trait Relationships
         return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)
+            ->filter(function($item) {
+                return Str::contains($item['entity'], '.') ? false : true;
+            })
             ->toArray();
     }
 
@@ -190,5 +193,34 @@ trait Relationships
         }
         return false;
     }
+
+    /**
+     * Associate and dissociate BelongsTo relations in the model
+     *
+     * @param  Model
+     * @param  array The form data.
+     * @return Model Model with relationships set up.
+     */
+    protected function associateOrDissociateBelongsToRelations($item, array $data)
+    {
+        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
+
+        foreach ($belongsToFields as $relationField) {
+            if(method_exists($item, $this->getOnlyRelationEntity($relationField))) {
+                $relatedId = Arr::get($data, $relationField['name']);
+                $related = $relationField['model']::find($relatedId);
+
+                // if we have null as value from form request and there is some previous selected entry
+                // we will dissociate the relation
+                if(is_null($relatedId) && !is_null($related)) {
+                    $item->{$this->getOnlyRelationEntity($relationField)}()->dissociate();
+                }else{
+                    $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+                }
+            }
+        }
+        return $item;
+    }
+
 
 }
