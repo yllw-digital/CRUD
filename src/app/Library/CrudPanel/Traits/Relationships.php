@@ -179,7 +179,7 @@ trait Relationships
     }
 
     /**
-     * Associate and dissociate the BelongsTo relations in primary model
+     * Associate and dissociate the BelongsTo relations in primary model.
      *
      * @param  Model
      * @param  array The form data.
@@ -190,7 +190,7 @@ trait Relationships
         $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
 
         foreach ($belongsToFields as $relationField) {
-            if(method_exists($item, $this->getOnlyRelationEntity($relationField))) {
+            if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
                 $relatedId = Arr::get($data, $relationField['name']);
                 $related = $relationField['model']::find($relatedId);
 
@@ -201,5 +201,3 @@ trait Relationships
         return $item;
     }
 }
-
-
