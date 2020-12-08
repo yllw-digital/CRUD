@@ -80,24 +80,6 @@ trait Create
     }
 
     /**
-     * Associate and dissociate.
-     *
-     * @param  Model
-     * @param  array The form data.
-     * @return Model Model with relationships set up.
-     */
-    public function associateBelongsToRelations($item, array $data)
-    {
-        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
-
-        foreach ($belongsToFields as $relationField) {
-            $item->{$this->getOnlyRelationEntity($relationField)}()->associate($relationField['model']::find(Arr::get($data, $relationField['name'])));
-        }
-
-        return $item;
-    }
-
-    /**
      * Get all fields with n-n relation set (pivot table is true).
      *
      * @return array The fields with n-n relationships.

@@ -177,4 +177,29 @@ trait Relationships
                 return false;
         }
     }
+
+    /**
+     * Associate and dissociate the BelongsTo relations in primary model
+     *
+     * @param  Model
+     * @param  array The form data.
+     * @return Model Model with relationships set up.
+     */
+    public function associateBelongsToRelations($item, array $data)
+    {
+        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
+
+        foreach ($belongsToFields as $relationField) {
+            if(method_exists($item, $this->getOnlyRelationEntity($relationField))) {
+                $relatedId = Arr::get($data, $relationField['name']);
+                $related = $relationField['model']::find($relatedId);
+
+                $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+            }
+        }
+
+        return $item;
+    }
 }
+
+
