@@ -209,7 +209,7 @@ trait Relationships
         $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
 
         foreach ($belongsToFields as $relationField) {
-            if(method_exists($item, $this->getOnlyRelationEntity($relationField))) {
+            if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
                 $relatedId = Arr::get($data, $relationField['name']);
                 $related = $relationField['model']::find($relatedId);
 
@@ -220,5 +220,3 @@ trait Relationships
         return $item;
     }
 }
-
-
