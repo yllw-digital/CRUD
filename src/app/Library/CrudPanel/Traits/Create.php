@@ -79,7 +79,6 @@ trait Create
         return $relationFields;
     }
 
-
     /**
      * Get all fields with n-n relation set (pivot table is true).
      *
@@ -159,7 +158,7 @@ trait Create
     }
 
     /**
-     * Create any existing one to one relations and subsquent relations from form data
+     * Create any existing one to one relations and subsquent relations from form data.
      *
      * @param \Illuminate\Database\Eloquent\Model $item          The current CRUD model.
      * @param array                               $formattedData The form data.
@@ -179,20 +178,20 @@ trait Create
             $relation = $item->{$relationMethod}();
 
             if ($relation instanceof HasOne) {
-                if(isset($relationData['relations'])) {
-                    $belongsToRelations = Arr::where($relationData['relations'], function($relation_data) {
+                if (isset($relationData['relations'])) {
+                    $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
                         return $relation_data['relation_type'] == 'BelongsTo';
                     });
                     // adds the values of the BelongsTo relations of this entity to the array of values that will
                     // be saved at the same time like we do in parent entity belongs to relations
                     $valuesWithRelations = $this->associateHasOneBelongsTo($belongsToRelations, $relationData['values'], $relation->getModel());
 
-                    $relationData['relations'] = Arr::where($relationData['relations'], function($item) {
-                        return $item['relation_type'] != "BelongsTo";
+                    $relationData['relations'] = Arr::where($relationData['relations'], function ($item) {
+                        return $item['relation_type'] != 'BelongsTo';
                     });
 
                     $modelInstance = $relation->updateOrCreate([], $valuesWithRelations);
-                }else{
+                } else {
                     $modelInstance = $relation->updateOrCreate([], $relationData['values']);
                 }
             }
@@ -203,9 +202,9 @@ trait Create
         }
     }
 
-    private function associateHasOneBelongsTo($belongsToRelations, $modelValues, $modelInstance) {
-
-        foreach($belongsToRelations as $methodName => $values) {
+    private function associateHasOneBelongsTo($belongsToRelations, $modelValues, $modelInstance)
+    {
+        foreach ($belongsToRelations as $methodName => $values) {
             $relation = $modelInstance->{$methodName}();
             $modelValues[$relation->getForeignKeyName()] = $values['values'][$methodName];
         }
