@@ -2,9 +2,9 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Model;
 
 trait Relationships
 {
@@ -197,7 +197,6 @@ trait Relationships
 
         return false;
     }
-
 
     /**
      * Associate and dissociate BelongsTo relations in the model.
