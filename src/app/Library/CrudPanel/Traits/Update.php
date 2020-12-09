@@ -32,7 +32,7 @@ trait Update
         $data = Arr::except($data, $nn_relationships);
 
         // handle BelongsTo 1:1 relations
-        $item = $this->associateBelongsToRelations($item, $data);
+        $item = $this->associateOrDissociateBelongsToRelations($item, $data);
 
         $item->fill($data);
         $item->save();

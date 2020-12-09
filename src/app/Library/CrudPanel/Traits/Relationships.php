@@ -61,7 +61,7 @@ trait Relationships
             ->where('model')
             ->whereIn('relation_type', $relation_types)
             ->filter(function ($item) {
-                return Str::contains($item['entity'], '.') ? false : true;
+                return Str::contains($item['entity'], '.') && $item['model'] !== get_class($this->model->{Arr::first(explode('.', $item['entity']))}()->getRelated()) ? false : true;
             })
             ->toArray();
     }
@@ -198,6 +198,7 @@ trait Relationships
         return false;
     }
 
+
     /**
      * Associate and dissociate BelongsTo relations in the model.
      *
@@ -205,7 +206,7 @@ trait Relationships
      * @param  array The form data.
      * @return Model Model with relationships set up.
      */
-    public function associateBelongsToRelations($item, array $data)
+    public function associateOrDissociateBelongsToRelations($item, array $data)
     {
         $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
 
