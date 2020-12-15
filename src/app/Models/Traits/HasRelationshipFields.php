@@ -22,8 +22,8 @@ trait HasRelationshipFields
     {
         $conn = DB::connection($this->getConnectionName());
 
-         // only register the extra types in sql databases
-         if (in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
+        // only register the extra types in sql databases
+        if (in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
             // register the enum, json and jsonb column type, because Doctrine doesn't support it
             $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
             $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('json', 'json_array');
