@@ -2,8 +2,8 @@
 
 namespace Backpack\CRUD\app\Models\Traits;
 
-use Illuminate\Support\Arr;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Support\Arr;
 
 trait HasIdentifiableAttribute
 {
@@ -39,7 +39,7 @@ trait HasIdentifiableAttribute
 
         // column listing is not available in non-sql databases. In this scenario we infer
         // the identifiable attribute from the model `fillable` attributes
-        if(!in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
+        if (! in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
             return $instance->inferIdentifiableAttributeFromModelFillable();
         }
 
@@ -47,7 +47,6 @@ trait HasIdentifiableAttribute
         $columns = $conn->getDoctrineSchemaManager()->listTableColumns($table);
         $indexes = $conn->getDoctrineSchemaManager()->listTableIndexes($table);
         $columnsNames = array_keys($columns);
-
 
         // if any of the sensibleDefaultNames column exists
         // that's probably a good choice
@@ -90,27 +89,28 @@ trait HasIdentifiableAttribute
      *
      * @return void
      */
-    public function inferIdentifiableAttributeFromModelFillable() {
+    public function inferIdentifiableAttributeFromModelFillable()
+    {
         $fillableFields = $this->getFillable();
-        if(!empty($fillableFields)) {
+        if (! empty($fillableFields)) {
             $matchedAttributeNames = array_intersect($this->getSensibleDefaultNames(), $fillableFields);
-            if (!empty($matchedAttributeNames)) {
+            if (! empty($matchedAttributeNames)) {
                 return reset($matchedAttributeNames);
             }
+
             return reset($fillableFields);
         }
 
-        abort(500,'Impossible to determine the identifiable attribute. Add it manually to your model or in your field definition.');
-
+        abort(500, 'Impossible to determine the identifiable attribute. Add it manually to your model or in your field definition.');
     }
-
 
     /**
      * Returns a list of sensible default names to be shown to endusers.
      *
      * @return array
      */
-    public function getSensibleDefaultNames() {
+    public function getSensibleDefaultNames()
+    {
         return ['name', 'title', 'description', 'label'];
     }
 }
