@@ -56,8 +56,11 @@ trait HasRelationshipFields
     {
         $conn = $this->getConnectionWithExtraTypeMappings();
         $table = $this->getTableWithPrefix();
-
-        return $conn->getSchemaBuilder()->getColumnType($table, $columnName);
+        if (in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
+            return $conn->getSchemaBuilder()->getColumnType($table, $columnName);
+        }else{
+            return 'text';
+        }
     }
 
     /**
