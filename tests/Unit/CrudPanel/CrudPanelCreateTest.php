@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
+use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
+use Backpack\CRUD\Tests\Unit\Models\Address;
 use Backpack\CRUD\Tests\Unit\Models\Article;
 use Backpack\CRUD\Tests\Unit\Models\User;
 use Faker\Factory;
@@ -103,6 +105,50 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         ],
     ];
 
+    private $userInputHasOneWithBelongsToRelation = [
+        [
+            'name' => 'accountDetails.nickname',
+        ],
+        [
+            'name' => 'accountDetails.profile_picture',
+        ],
+        [
+            'name' => 'accountDetails.article',
+            'type' => 'relationship',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelationName = [
+        [
+            'name' => 'user',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'address',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelatedKey = [
+        [
+            'name' => 'user_id',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'address_id',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
     public function testCreate()
     {
         $this->crudPanel->setModel(User::class);
@@ -121,7 +167,43 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertEmpty($entry->articles);
     }
 
+    public function testCreateBelongsToWithRelationName()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleBelongsToWithRelationName);
+        $faker = Factory::create();
+        $inputData = [
+            'user'     => 1,
+            'content'    => $faker->text,
+            'address' => 1,
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertInstanceOf(Address::class, $entry->address);
+        $this->assertInstanceOf(User::class, $entry->user);
+    }
+
+    public function testCreateBelongsToWithRelationKey()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleBelongsToWithRelatedKey);
+        $faker = Factory::create();
+        $inputData = [
+            'user_id'     => 1,
+            'content'    => $faker->text,
+            'address_id' => 1,
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertInstanceOf(Address::class, $entry->address);
+        $this->assertInstanceOf(User::class, $entry->user);
+    }
+
     /**
+     * Undocumented function.
+     *
      * @group failing
      */
     public function testCreateWithOneToOneRelationship()
@@ -140,7 +222,42 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
             ],
         ];
         $entry = $this->crudPanel->create($inputData);
-        $this->markTestIncomplete('Has one relation is not created in tests.');
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertEquals('test.jpg', $entry->accountDetails->profile_picture);
+    }
+
+    /**
+     * Undocumented function.
+     *
+     * @group failing
+     */
+    public function testCreateBelongsToRelationInOneToOneRelationship()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships);
+        $this->crudPanel->addFields($this->userInputHasOneWithBelongsToRelation);
+        $article = Article::first();
+        $faker = Factory::create();
+        $inputData = [
+            'name'     => $faker->name,
+            'email'    => $faker->safeEmail,
+            'password' => bcrypt($faker->password()),
+            'accountDetails' => [
+                'nickname' => $faker->name,
+                'profile_picture' => 'test.jpg',
+                'article' => $article->id,
+            ],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertInstanceOf(Article::class, $entry->accountDetails->article);
     }
 
     public function testCreateWithOneToManyRelationship()
@@ -245,7 +362,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
 
         //get all fields with a relation
         $relationFields = $this->crudPanel->getRelationFields();
-        //var_dump($this->crudPanel->get('create.fields')['street']);
 
         $this->assertEquals($this->crudPanel->get('create.fields')['street'], Arr::last($relationFields));
     }
@@ -256,6 +372,31 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->crudPanel->setOperation('create');
 
         $this->crudPanel->addFields($this->userInputHasOneRelation);
+        $faker = Factory::create();
+
+        $inputData = [
+            'name'           => $faker->name,
+            'email'          => $faker->safeEmail,
+            'password'       => bcrypt($faker->password()),
+            'remember_token' => null,
+            'roles'          => [1, 2],
+            'accountDetails' => [
+                'nickname' => 'i_have_has_one',
+                'profile_picture' => 'simple_picture.jpg',
+            ],
+        ];
+        $entry = $this->crudPanel->create($inputData);
+        $account_details = $entry->accountDetails()->first();
+
+        $this->assertEquals($account_details->nickname, 'i_have_has_one');
+    }
+
+    public function testCreateBelongsToInHasOneRelations()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('create');
+
+        $this->crudPanel->addFields($this->userInputHasOneWithBelongsToRelation);
         $faker = Factory::create();
 
         $inputData = [
@@ -310,10 +451,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $relationFields = $this->crudPanel->getRelationFieldsWithPivot();
 
         $this->assertEmpty($relationFields);
-    }
-
-    public function testCreateOneToOneRelationships()
-    {
     }
 
     public function testSyncPivot()

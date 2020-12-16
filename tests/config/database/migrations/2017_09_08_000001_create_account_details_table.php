@@ -15,14 +15,20 @@ class CreateAccountDetailsTable extends Migration
     {
         Schema::create('account_details', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id')->length(10)->unsigned();
+            $table->integer('user_id')->unsigned();
             $table->string('nickname');
             $table->string('profile_picture');
+            $table->bigInteger('article_id')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')
                 ->references('id')
                 ->on('users')
+                ->onDelete('cascade');
+
+            $table->foreign('article_id')
+                ->references('id')
+                ->on('articles')
                 ->onDelete('cascade');
         });
     }

@@ -2,7 +2,9 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 trait Relationships
 {
@@ -42,6 +44,26 @@ trait Relationships
         }
 
         return $relation_model->{$related_method}();
+    }
+
+    /**
+     * Get the fields with specific relation types that are not nested relations.
+     *
+     * @param array|string $relation_types
+     *
+     * @return array The fields with corresponding relation types.
+     */
+    public function getFieldsWithRelationType($relation_types): array
+    {
+        $relation_types = is_array($relation_types) ?: (array) $relation_types;
+
+        return collect($this->fields())
+            ->where('model')
+            ->whereIn('relation_type', $relation_types)
+            ->filter(function ($item) {
+                return Str::contains($item['entity'], '.') && $item['model'] !== get_class($this->model->{Arr::first(explode('.', $item['entity']))}()->getRelated()) ? false : true;
+            })
+            ->toArray();
     }
 
     /**
@@ -159,5 +181,43 @@ trait Relationships
             default:
                 return false;
         }
+    }
+
+    /**
+     * Check if field name contains a dot, if so, meaning it's a nested relation.
+     *
+     * @param array $field
+     * @return bool
+     */
+    protected function isNestedRelation($field): bool
+    {
+        if (strpos($field['entity'], '.') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Associate and dissociate BelongsTo relations in the model.
+     *
+     * @param  Model
+     * @param  array The form data.
+     * @return Model Model with relationships set up.
+     */
+    public function associateOrDissociateBelongsToRelations($item, array $data)
+    {
+        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
+
+        foreach ($belongsToFields as $relationField) {
+            if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
+                $relatedId = Arr::get($data, $relationField['name']);
+                $related = $relationField['model']::find($relatedId);
+
+                $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+            }
+        }
+
+        return $item;
     }
 }
