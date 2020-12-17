@@ -29,12 +29,10 @@ trait Update
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
 
-        $data = Arr::except($data, $nn_relationships);
-
         // handle BelongsTo 1:1 relations
         $item = $this->associateOrDissociateBelongsToRelations($item, $data);
 
-        $item->fill($data);
+        $item->fill(Arr::except($data, $nn_relationships));
         $item->save();
 
         $this->createRelations($item, $data);
@@ -104,6 +102,29 @@ trait Update
             if (method_exists($relatedModel, $relationMethod) && $relatedModel->{$relationMethod}() instanceof HasOne) {
                 return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
             } else {
+                // if pivot is true and there are `pivotFields` we need to get those pivot values to show on the edit page
+                if (isset($field['pivot']) && $field['pivot'] && isset($field['pivotFields']) && is_array($field['pivotFields'])) {
+                    //we remove the first field from repeatable because it is our relation.
+                    $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
+                        return $field['name'] != $item['name'];
+                    });
+                    //dd($pivot_fields);
+                    //we grab the related models
+                    $related_models = $relatedModel->{$relationMethod};
+                    $return = [];
+
+                    //for any given model, we grab the attributes that belong to our pivot table.
+                    foreach ($related_models as $related_model) {
+                        $item[$field['name']] = $related_model->getKey();
+                        //for any given related model, we attach the pivot fields.
+                        foreach ($pivot_fields as $pivot_field) {
+                            $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
+                        }
+                        $return[] = $item;
+                    }
+                    //we return the json encoded result as expected by repeatable field.
+                    return json_encode($return);
+                }
                 return $relatedModel->{$relationMethod};
             }
         }

@@ -113,30 +113,51 @@ trait Create
      */
     public function syncPivot($model, $data)
     {
-        $fields_with_relationships = $this->getRelationFields();
+        $fields_with_relationships = $this->getRelationFieldsWithPivot();
         foreach ($fields_with_relationships as $key => $field) {
-            if (isset($field['pivot']) && $field['pivot']) {
-                $values = isset($data[$field['name']]) ? $data[$field['name']] : [];
+            $values = isset($data[$field['name']]) ? $data[$field['name']] : [];
 
-                // if a JSON was passed instead of an array, turn it into an array
-                if (is_string($values)) {
-                    $values = json_decode($values);
+            // if a JSON was passed instead of an array, turn it into an array
+            if (is_string($values)) {
+                $decoded_values = json_decode($values, true);
+                $values = [];
+                //array is not multidimensional
+                if (count($decoded_values) != count($decoded_values, COUNT_RECURSIVE))  {
+                    foreach ($decoded_values as $value) {
+                        $values[] = $value[$field['name']];
+                    }
+                }else{
+                    $values = $decoded_values;
                 }
+            }
 
-                $relation_data = [];
-                foreach ($values as $pivot_id) {
-                    $pivot_data = [];
+            $relation_data = [];
+            foreach ($values as $pivot_id) {
+                $pivot_data = [];
 
-                    if (isset($field['pivotFields'])) {
+                if (isset($field['pivotFields'])) {
+                    //array is not multidimensional
+                    if (count($field['pivotFields']) == count($field['pivotFields'], COUNT_RECURSIVE))  {
                         foreach ($field['pivotFields'] as $pivot_field_name) {
                             $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
                         }
+                    }else{
+                        $field_data = json_decode($data[$field['name']], true);
+
+                        //we grab from the parsed data the specific values for this pivot
+                        $pivot_data = Arr::first(Arr::where($field_data, function ($item) use ($pivot_id, $field) {
+                            return $item[$field['name']] === $pivot_id;
+                        }));
+
+                        //we remove the relation field from extra pivot data as we already have the relation.
+                        unset($pivot_data[$field['name']]);
                     }
-                    $relation_data[$pivot_id] = $pivot_data;
                 }
 
-                $model->{$field['name']}()->sync($relation_data);
+                $relation_data[$pivot_id] = $pivot_data;
             }
+
+            $model->{$field['name']}()->sync($relation_data);
 
             if (isset($field['morph']) && $field['morph'] && isset($data[$field['name']])) {
                 $values = $data[$field['name']];
