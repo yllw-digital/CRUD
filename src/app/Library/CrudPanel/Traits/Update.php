@@ -1,13 +1,13 @@
 <?php
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 
 trait Update
@@ -94,9 +94,7 @@ trait Update
      */
     private function getModelAttributeValue($model, $field)
     {
-
         if (isset($field['entity'])) {
-
             $relational_entity = $this->parseRelationFieldNamesFromHtml([$field])[0]['name'];
 
             $relation_array = explode('.', $relational_entity);
@@ -107,15 +105,13 @@ trait Update
 
             $relationMethod = Arr::last($relation_array);
             if (method_exists($relatedModel, $relationMethod)) {
-
                 $relation = $relatedModel->{$relationMethod}();
                 if ($relation instanceof HasOne || $relation instanceof MorphOne) {
                     return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
                 }
 
-
                 if ($relation instanceof HasMany || $relation instanceof MorphMany) {
-                    if(isset($field['pivotFields']) && is_array($field['pivotFields'])) {
+                    if (isset($field['pivotFields']) && is_array($field['pivotFields'])) {
                         $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
                             return $field['name'] != $item['name'];
                         });
@@ -134,7 +130,6 @@ trait Update
                         // we return the json encoded result as expected by repeatable field.
                         return json_encode($return);
                     }
-
                 }
 
                 if ($relation instanceof BelongsToMany || $relation instanceof MorphToMany) {

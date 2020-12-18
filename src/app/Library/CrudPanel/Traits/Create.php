@@ -3,11 +3,10 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Arr;
 
 trait Create
@@ -126,11 +125,11 @@ trait Create
                 $decoded_values = json_decode($values, true);
                 $values = [];
                 //array is not multidimensional
-                if (count($decoded_values) != count($decoded_values, COUNT_RECURSIVE))  {
+                if (count($decoded_values) != count($decoded_values, COUNT_RECURSIVE)) {
                     foreach ($decoded_values as $value) {
                         $values[] = $value[$field['name']];
                     }
-                }else{
+                } else {
                     $values = $decoded_values;
                 }
             }
@@ -138,16 +137,16 @@ trait Create
             $relation_data = [];
 
             foreach ($values as $pivot_id) {
-                if($pivot_id != '') {
+                if ($pivot_id != '') {
                     $pivot_data = [];
 
                     if (isset($field['pivotFields'])) {
                         //array is not multidimensional
-                        if (count($field['pivotFields']) == count($field['pivotFields'], COUNT_RECURSIVE))  {
+                        if (count($field['pivotFields']) == count($field['pivotFields'], COUNT_RECURSIVE)) {
                             foreach ($field['pivotFields'] as $pivot_field_name) {
                                 $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
                             }
-                        }else{
+                        } else {
                             $field_data = json_decode($data[$field['name']], true);
 
                             //we grab from the parsed data the specific values for this pivot
@@ -162,7 +161,6 @@ trait Create
 
                     $relation_data[$pivot_id] = $pivot_data;
                 }
-
 
                 $model->{$field['name']}()->sync($relation_data);
 
@@ -222,22 +220,19 @@ trait Create
 
                     $modelInstance = $relation->updateOrCreate([], $valuesWithRelations);
                 } else {
-
                     $modelInstance = $relation->updateOrCreate([], $relationData['values']);
-
                 }
-            }elseif($relation instanceof HasMany || $relation instanceof MorphMany) {
-
+            } elseif ($relation instanceof HasMany || $relation instanceof MorphMany) {
                 $relation_values = $relationData['values'][$relationMethod];
 
-                if(is_string($relation_values)) {
+                if (is_string($relation_values)) {
                     $relation_values = json_decode($relationData['values'][$relationMethod], true);
                 }
 
-                if (is_null($relation_values) || count($relation_values) == count($relation_values, COUNT_RECURSIVE))  {
-                        $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
-                }else{
-                        $this->createManyEntries($item, $relation, $relationMethod, $relationData);
+                if (is_null($relation_values) || count($relation_values) == count($relation_values, COUNT_RECURSIVE)) {
+                    $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
+                } else {
+                    $this->createManyEntries($item, $relation, $relationMethod, $relationData);
                 }
             }
 
@@ -350,7 +345,7 @@ trait Create
 
         $relation_column_is_nullable = $model_instance->isColumnNullable($relation->getForeignKeyName());
 
-        if (!is_null($relation_values) && $relationData['values'][$relationMethod][0] !== null) {
+        if (! is_null($relation_values) && $relationData['values'][$relationMethod][0] !== null) {
             //we add the new values into the relation
             $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
            ->update([$relation->getForeignKeyName() => $item->{$relation->getLocalKeyName()}]);
@@ -408,16 +403,16 @@ trait Create
             $entry->{$relationMethod}()->sync([]);
         } else {
             $items->each(function (&$item, $key) use ($relatedModel, $entry, $relationMethod) {
-                if(isset($item[$relatedModel->getKeyName()])) {
+                if (isset($item[$relatedModel->getKeyName()])) {
                     $entry->{$relationMethod}()->updateOrCreate([$relatedModel->getKeyName() => $item[$relatedModel->getKeyName()]], $item);
-                }else{
+                } else {
                     $entry->{$relationMethod}()->updateOrCreate([], $item);
                 }
             });
 
             $relatedItemsSent = $items->pluck($relatedModel->getKeyName());
 
-             if (! $relatedItemsSent->isEmpty()) {
+            if (! $relatedItemsSent->isEmpty()) {
                 $itemsInDatabase = $entry->{$relationMethod};
                 //we perform the cleanup of removed database items
                 $itemsInDatabase->each(function ($item, $key) use ($relatedItemsSent) {
@@ -428,5 +423,4 @@ trait Create
             }
         }
     }
-
 }
