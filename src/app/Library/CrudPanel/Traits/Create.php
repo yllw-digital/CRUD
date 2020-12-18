@@ -4,6 +4,10 @@ namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 use Illuminate\Support\Arr;
 
 trait Create
@@ -27,10 +31,10 @@ trait Create
         $data = $this->compactFakeFields($data);
 
         // omit the n-n relationships when updating the eloquent item
-        $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
+        $relationships = Arr::pluck($this->getRelationFields(), 'name');
 
         // init and fill model
-        $item = $this->model->make(Arr::except($data, $nn_relationships));
+        $item = $this->model->make(Arr::except($data, $relationships));
 
         // handle BelongsTo 1:1 relations
         $item = $this->associateOrDissociateBelongsToRelations($item, $data);
@@ -132,36 +136,40 @@ trait Create
             }
 
             $relation_data = [];
+
             foreach ($values as $pivot_id) {
-                $pivot_data = [];
+                if($pivot_id != '') {
+                    $pivot_data = [];
 
-                if (isset($field['pivotFields'])) {
-                    //array is not multidimensional
-                    if (count($field['pivotFields']) == count($field['pivotFields'], COUNT_RECURSIVE))  {
-                        foreach ($field['pivotFields'] as $pivot_field_name) {
-                            $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
+                    if (isset($field['pivotFields'])) {
+                        //array is not multidimensional
+                        if (count($field['pivotFields']) == count($field['pivotFields'], COUNT_RECURSIVE))  {
+                            foreach ($field['pivotFields'] as $pivot_field_name) {
+                                $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
+                            }
+                        }else{
+                            $field_data = json_decode($data[$field['name']], true);
+
+                            //we grab from the parsed data the specific values for this pivot
+                            $pivot_data = Arr::first(Arr::where($field_data, function ($item) use ($pivot_id, $field) {
+                                return $item[$field['name']] === $pivot_id;
+                            }));
+
+                            //we remove the relation field from extra pivot data as we already have the relation.
+                            unset($pivot_data[$field['name']]);
                         }
-                    }else{
-                        $field_data = json_decode($data[$field['name']], true);
-
-                        //we grab from the parsed data the specific values for this pivot
-                        $pivot_data = Arr::first(Arr::where($field_data, function ($item) use ($pivot_id, $field) {
-                            return $item[$field['name']] === $pivot_id;
-                        }));
-
-                        //we remove the relation field from extra pivot data as we already have the relation.
-                        unset($pivot_data[$field['name']]);
                     }
+
+                    $relation_data[$pivot_id] = $pivot_data;
                 }
 
-                $relation_data[$pivot_id] = $pivot_data;
-            }
 
-            $model->{$field['name']}()->sync($relation_data);
+                $model->{$field['name']}()->sync($relation_data);
 
-            if (isset($field['morph']) && $field['morph'] && isset($data[$field['name']])) {
-                $values = $data[$field['name']];
-                $model->{$field['name']}()->sync($values);
+                if (isset($field['morph']) && $field['morph'] && isset($data[$field['name']])) {
+                    $values = $data[$field['name']];
+                    $model->{$field['name']}()->sync($values);
+                }
             }
         }
     }
@@ -191,6 +199,7 @@ trait Create
         if (! isset($formattedData['relations'])) {
             return false;
         }
+
         foreach ($formattedData['relations'] as $relationMethod => $relationData) {
             if (! isset($relationData['model'])) {
                 continue;
@@ -198,7 +207,7 @@ trait Create
 
             $relation = $item->{$relationMethod}();
 
-            if ($relation instanceof HasOne) {
+            if ($relation instanceof HasOne || $relation instanceof MorphOne) {
                 if (isset($relationData['relations'])) {
                     $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
                         return $relation_data['relation_type'] == 'BelongsTo';
@@ -213,7 +222,22 @@ trait Create
 
                     $modelInstance = $relation->updateOrCreate([], $valuesWithRelations);
                 } else {
+
                     $modelInstance = $relation->updateOrCreate([], $relationData['values']);
+
+                }
+            }elseif($relation instanceof HasMany || $relation instanceof MorphMany) {
+
+                $relation_values = $relationData['values'][$relationMethod];
+
+                if(is_string($relation_values)) {
+                    $relation_values = json_decode($relationData['values'][$relationMethod], true);
+                }
+
+                if (is_null($relation_values) || count($relation_values) == count($relation_values, COUNT_RECURSIVE))  {
+                        $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
+                }else{
+                        $this->createManyEntries($item, $relation, $relationMethod, $relationData);
                 }
             }
 
@@ -272,6 +296,12 @@ trait Create
                     $fieldData['parent'] = $this->getRelationModel($attributeKey, -1);
                 }
 
+                if (array_key_exists('fallback_id', $relation_field)) {
+                    $fieldData['fallback_id'] = $relation_field['fallback_id'];
+                }
+
+                $fieldData['force_delete'] = $relation_field['force_delete'] ?? false;
+
                 if (! array_key_exists('relation_type', $fieldData)) {
                     $fieldData['relation_type'] = $relation_field['relation_type'];
                 }
@@ -305,4 +335,98 @@ trait Create
 
         return $relation_field['entity'];
     }
+
+    /**
+     * When using the HasMany/MorphMany relations as selectable elements we use this function to sync those relations.
+     * Here we allow for different functionality than when creating. Developer could use this relation as a
+     * selectable list of items that can belong to one/none entity at any given time.
+     *
+     * @return void
+     */
+    public function attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values)
+    {
+        $model_instance = $relation->getRelated();
+        $force_delete = $relationData['force_delete'];
+
+        $relation_column_is_nullable = $model_instance->isColumnNullable($relation->getForeignKeyName());
+
+        if (!is_null($relation_values) && $relationData['values'][$relationMethod][0] !== null) {
+            //we add the new values into the relation
+            $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
+           ->update([$relation->getForeignKeyName() => $item->{$relation->getLocalKeyName()}]);
+
+            //we clear up any values that were removed from model relation.
+            //if developer provided a fallback id, we use it
+            //if column is nullable we set it to null
+            //if none of the above we delete the model from database
+            if (isset($relationData['fallback_id'])) {
+                $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
+                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
+            } else {
+                if (! $relation_column_is_nullable || $force_delete) {
+                    $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
+                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->delete();
+                } else {
+                    $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
+                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => null]);
+                }
+            }
+        } else {
+            //the developer cleared the selection
+            //we gonna clear all related values by setting up the value to the fallback id, to null or delete.
+            if (isset($relationData['fallback_id'])) {
+                $model_instance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
+            } else {
+                if (! $relation_column_is_nullable || $force_delete) {
+                    $model_instance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})->delete();
+                } else {
+                    $model_instance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->update([$relation->getForeignKeyName() => null]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Handler HasMany/MorphMany relations when used as creatable entries in the crud.
+     * By using repeatable field, developer can allow the creation of such entries
+     * in the crud forms.
+     *
+     * @return void
+     */
+    public function createManyEntries($entry, $relation, $relationMethod, $relationData)
+    {
+        $items = collect(json_decode($relationData['values'][$relationMethod], true));
+        $relatedModel = $relation->getRelated();
+        $itemsInDatabase = $entry->{$relationMethod};
+        //if the collection is empty we clear all previous values in database if any.
+        if ($items->isEmpty()) {
+            $entry->{$relationMethod}()->sync([]);
+        } else {
+            $items->each(function (&$item, $key) use ($relatedModel, $entry, $relationMethod) {
+                if(isset($item[$relatedModel->getKeyName()])) {
+                    $entry->{$relationMethod}()->updateOrCreate([$relatedModel->getKeyName() => $item[$relatedModel->getKeyName()]], $item);
+                }else{
+                    $entry->{$relationMethod}()->updateOrCreate([], $item);
+                }
+            });
+
+            $relatedItemsSent = $items->pluck($relatedModel->getKeyName());
+
+             if (! $relatedItemsSent->isEmpty()) {
+                $itemsInDatabase = $entry->{$relationMethod};
+                //we perform the cleanup of removed database items
+                $itemsInDatabase->each(function ($item, $key) use ($relatedItemsSent) {
+                    if (! $relatedItemsSent->contains($item->getKey())) {
+                        $item->delete();
+                    }
+                });
+            }
+        }
+    }
+
 }

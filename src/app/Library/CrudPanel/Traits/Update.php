@@ -1,6 +1,12 @@
 <?php
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use Illuminate\Support\Arr;
 
@@ -88,7 +94,9 @@ trait Update
      */
     private function getModelAttributeValue($model, $field)
     {
+
         if (isset($field['entity'])) {
+
             $relational_entity = $this->parseRelationFieldNamesFromHtml([$field])[0]['name'];
 
             $relation_array = explode('.', $relational_entity);
@@ -98,35 +106,67 @@ trait Update
             }, $model);
 
             $relationMethod = Arr::last($relation_array);
+            if (method_exists($relatedModel, $relationMethod)) {
 
-            if (method_exists($relatedModel, $relationMethod) && $relatedModel->{$relationMethod}() instanceof HasOne) {
-                return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
-            } else {
-                // if pivot is true and there are `pivotFields` we need to get those pivot values to show on the edit page
-                if (isset($field['pivot']) && $field['pivot'] && isset($field['pivotFields']) && is_array($field['pivotFields'])) {
-                    //we remove the first field from repeatable because it is our relation.
-                    $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
-                        return $field['name'] != $item['name'];
-                    });
-                    //dd($pivot_fields);
-                    //we grab the related models
-                    $related_models = $relatedModel->{$relationMethod};
-                    $return = [];
-
-                    //for any given model, we grab the attributes that belong to our pivot table.
-                    foreach ($related_models as $related_model) {
-                        $item[$field['name']] = $related_model->getKey();
-                        //for any given related model, we attach the pivot fields.
-                        foreach ($pivot_fields as $pivot_field) {
-                            $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
-                        }
-                        $return[] = $item;
-                    }
-                    //we return the json encoded result as expected by repeatable field.
-                    return json_encode($return);
+                $relation = $relatedModel->{$relationMethod}();
+                if ($relation instanceof HasOne || $relation instanceof MorphOne) {
+                    return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
                 }
-                return $relatedModel->{$relationMethod};
+
+
+                if ($relation instanceof HasMany || $relation instanceof MorphMany) {
+                    if(isset($field['pivotFields']) && is_array($field['pivotFields'])) {
+                        $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
+                            return $field['name'] != $item['name'];
+                        });
+                        $related_models = $relatedModel->{$relationMethod};
+                        $return = [];
+
+                        // for any given model, we grab the attributes that belong to our pivot table.
+                        foreach ($related_models as $related_model) {
+                            //for any given related model, we attach the pivot fields.
+                            foreach ($pivot_fields as $pivot_field) {
+                                $item[$pivot_field['name']] = $related_model->{$pivot_field['name']};
+                                $item[$related_model->getKeyName()] = $related_model->getKey();
+                            }
+                            $return[] = $item;
+                        }
+                        // we return the json encoded result as expected by repeatable field.
+                        return json_encode($return);
+                    }
+
+                }
+
+                if ($relation instanceof BelongsToMany || $relation instanceof MorphToMany) {
+
+                    // if pivot is true and there are `pivotFields` we need to get those pivot values to show on the edit page
+                    if (isset($field['pivot']) && $field['pivot'] && isset($field['pivotFields']) && is_array($field['pivotFields'])) {
+
+                        // we remove our current relation from the pivotFields.
+                        $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
+                            return $field['name'] != $item['name'];
+                        });
+
+                        $related_models = $relatedModel->{$relationMethod};
+                        $return = [];
+
+                        // for any given model, we grab the attributes that belong to our pivot table.
+                        foreach ($related_models as $related_model) {
+                            $item[$field['name']] = $related_model->getKey();
+                            //for any given related model, we attach the pivot fields.
+                            foreach ($pivot_fields as $pivot_field) {
+                                $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
+                            }
+                            $return[] = $item;
+                        }
+
+                        // we return the json encoded result as expected by repeatable field.
+                        return json_encode($return);
+                    }
+                }
             }
+
+            return $relatedModel->{$relationMethod};
         }
 
         if (is_string($field['name'])) {

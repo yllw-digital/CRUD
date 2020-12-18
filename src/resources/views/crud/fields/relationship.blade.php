@@ -14,7 +14,7 @@
     // if field is not ajax but user wants to use InlineCreate
     // we make minimum_input_length = 0 so when user open we show the entries like a regular select
     $field['minimum_input_length'] = ($field['ajax'] !== true) ? 0 : ($field['minimum_input_length'] ?? 2);
-    if($field['relation_type'] == 'BelongsTo') {
+    if($field['relation_type'] == 'BelongsTo' || ($field['relation_type'] == 'BelongsToMany' && !isset($field['pivotFields']))) {
     if(isset($field['inline_create'])) {
         // if the field is beeing inserted in an inline create modal
         // we don't allow modal over modal (for now ...) so we load fetch or select accordingly to field type.
@@ -34,7 +34,7 @@
             $field['type'] = 'relationship_select';
         }
     }
-    }elseif(in_array($field['relation_type'], ['MorphToMany', 'BelongsToMany'])) {
+    }elseif(in_array($field['relation_type'], ['MorphToMany', 'BelongsToMany', 'MorphMany', 'HasMany'])) {
         //if there are fields for pivot we must use it as a repeatable field
         if(isset($field['pivotFields'])) {
             $field['type'] = 'repeatable_relation';

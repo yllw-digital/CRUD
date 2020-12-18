@@ -177,7 +177,7 @@ trait FieldsProtectedMethods
 
     /**
      * If field entity contains a dot, we know we are dealing with a relationship.
-     * If that relation is HasOne we want to ovewrite the field name so
+     * If that relation is HasOne/MorphOne we want to ovewrite the field name so
      * we will have the connected key as part of the field name.
      *
      * @param array $field
@@ -191,7 +191,7 @@ trait FieldsProtectedMethods
         }
 
         // only 1-1 relationships are supported, if it's anything else, abort
-        if ($field['relation_type'] != 'HasOne') {
+        if ($field['relation_type'] != 'HasOne' || $field['relation_type'] != 'MorphOne') {
             return $field;
         }
 
