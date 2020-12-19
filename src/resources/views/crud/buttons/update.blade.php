@@ -11,7 +11,7 @@
 	<div class="btn-group">
 	  <a href="{{ url($crud->route.'/'.$entry->getKey().'/edit') }}" class="btn btn-sm btn-link pr-0" title="{{ trans('backpack::crud.edit') }}">
 		<i class="la la-edit"></i>
-		<span>{{ trans('backpack::crud.edit') }}</span>
+		<span class="{{ config('backpack.crud.operations.list.defaultButtonTextClass.line', '') }}">{{ trans('backpack::crud.edit') }}</span>
 	  </a>
 	  <a class="btn btn-sm btn-link dropdown-toggle text-primary pl-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 	    <span class="caret"></span>
