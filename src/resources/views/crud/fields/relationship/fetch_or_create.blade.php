@@ -269,7 +269,13 @@ function setupInlineCreateButtons(element) {
 
         //prepare main form fields to be submited in case there are some.
         if(typeof $includeMainFormFields === "boolean" && $includeMainFormFields === true) {
+
+            // we trigger this event so that fields in need to parse their value before sent in some ajax request,
+            // case of repeatable, can catch it and be sent with main form.
+            $form.trigger('backpack_field.parse_value');
+
             var $toPass = $form.serializeArray();
+
         }else{
             if(typeof $includeMainFormFields !== "boolean") {
             var $fields = JSON.parse($includeMainFormFields);

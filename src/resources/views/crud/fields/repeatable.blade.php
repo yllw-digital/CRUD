@@ -116,6 +116,13 @@
 
             var field_name = element.attr('name');
 
+            // create a new event handler that will parse the repeatable values to the hidden inputs
+            // so they can be submited along with form when requesting some ajax endpoint
+
+            element.closest('form').on('backpack_field.parse_value', function(e) {
+                element.val(JSON.stringify(repeatableInputToObj(field_name)));
+            });
+
             // element will be a jQuery wrapped DOM node
             var container = $('[data-repeatable-identifier='+field_name+']');
 
