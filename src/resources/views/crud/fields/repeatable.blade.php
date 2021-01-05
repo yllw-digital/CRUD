@@ -87,6 +87,7 @@
 
   @push('crud_fields_scripts')
       <script>
+
         /**
          * Takes all inputs and makes them an object.
          */
@@ -115,13 +116,30 @@
         function bpFieldInitRepeatableElement(element) {
 
             var field_name = element.attr('name');
+            var form = element.closest('form');
+
+            let formEvents = jQuery._data( form[0], "events" );
 
             // create a new event handler that will parse the repeatable values to the hidden inputs
             // so they can be submited along with form when requesting some ajax endpoint
+            // we check that the event is not registered twice
+            if (!('backpack_field' in formEvents) || Object.values(formEvents.backpack_field).filter(function(e) { return e.namespace === 'parse_value'; }).length == 0) {
 
-            element.closest('form').on('backpack_field.parse_value', function(e) {
-                element.val(JSON.stringify(repeatableInputToObj(field_name)));
-            });
+                form.on('backpack_field.parse_value', function(evt, element) {
+                    // TODO: element is the input that made the ajax request
+                    var parsed_inputs = [];
+                    form.find('.container-repeatable-elements').each(function(e, target) {
+                        var container_element = $(target).children('div').eq(0);
+                        var container_name = container_element.attr('data-repeatable-holder');
+                        var hidden_input = $(target).parent().find('input[name="'+container_name+'"]');
+
+                        if(!parsed_inputs.includes(container_name)) {
+                            hidden_input.val(JSON.stringify(repeatableInputToObj(container_name)));
+                            parsed_inputs.push(container_name);
+                        }
+                    });
+                });
+            }
 
             // element will be a jQuery wrapped DOM node
             var container = $('[data-repeatable-identifier='+field_name+']');
