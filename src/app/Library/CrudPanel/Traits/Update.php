@@ -2,12 +2,6 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 
 trait Update
@@ -108,7 +102,7 @@ trait Update
                 $relation = $relatedModel->{$relationMethod}();
                 $relation_type = (new \ReflectionClass($relation))->getShortName();
 
-                switch($relation_type) {
+                switch ($relation_type) {
                     case 'HasOne':
                     case 'MorphOne':
                         return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};

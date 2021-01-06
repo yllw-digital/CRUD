@@ -206,7 +206,7 @@ trait Create
             $relation = $item->{$relationMethod}();
             $relation_type = (new \ReflectionClass($relation))->getShortName();
 
-            switch($relation_type) {
+            switch ($relation_type) {
                 case 'HasOne':
                 case 'MorphOne':
                     // we first check if there are relations of the relation
@@ -340,7 +340,7 @@ trait Create
 
     /**
      * Return the relation without any model attributes there.
-     * Eg. user.entity_id would return user, as entity_id is not a relation in user
+     * Eg. user.entity_id would return user, as entity_id is not a relation in user.
      *
      * @param array $relation_field
      * @return string
