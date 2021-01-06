@@ -570,7 +570,6 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertCount(1, $relationField);
     }
 
-
     public function testCanGetRelationFieldsByArrayOfRelations()
     {
         $this->crudPanel->setModel(User::class);

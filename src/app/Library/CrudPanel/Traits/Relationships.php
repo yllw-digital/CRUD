@@ -56,13 +56,12 @@ trait Relationships
      */
     public function getFieldsWithRelationType($relation_types): array
     {
-        $relation_types = (array)$relation_types;
+        $relation_types = (array) $relation_types;
 
         return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)
             ->filter(function ($item) {
-
                 $related_model = get_class($this->model->{Arr::first(explode('.', $item['entity']))}()->getRelated());
 
                 return Str::contains($item['entity'], '.') && $item['model'] !== $related_model ? false : true;
