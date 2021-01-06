@@ -442,9 +442,8 @@ trait Create
             $relatedItemsSent = $items->pluck($relatedModel->getKeyName());
 
             if (! $relatedItemsSent->isEmpty()) {
-                $itemsInDatabase = $entry->{$relationMethod};
                 //we perform the cleanup of removed database items
-                $itemsInDatabase->each(function ($item, $key) use ($relatedItemsSent) {
+                $entry->{$relationMethod}->each(function ($item, $key) use ($relatedItemsSent) {
                     if (! $relatedItemsSent->contains($item->getKey())) {
                         $item->delete();
                     }

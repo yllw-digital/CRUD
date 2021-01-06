@@ -121,8 +121,6 @@ trait AutoSet
             case 'mediumint':
             case 'longint':
                 return 'number';
-            break;
-
             case 'string':
             case 'varchar':
             case 'set':

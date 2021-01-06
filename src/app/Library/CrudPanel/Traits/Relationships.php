@@ -125,7 +125,7 @@ trait Relationships
      * Based on relation type returns the default field type.
      *
      * @param string $relation_type
-     * @return bool
+     * @return string
      */
     public function inferFieldTypeFromFieldRelation($field)
     {
@@ -137,10 +137,8 @@ trait Relationships
             case 'MorphToMany':
             case 'BelongsTo':
                 return 'relationship';
-            break;
             default:
                 return 'text';
-            break;
         }
     }
 
@@ -161,10 +159,8 @@ trait Relationships
             case 'MorphOneOrMany':
             case 'MorphToMany':
                 return true;
-            break;
             default:
                 return false;
-            break;
         }
     }
 
