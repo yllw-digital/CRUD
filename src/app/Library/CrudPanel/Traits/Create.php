@@ -204,11 +204,11 @@ trait Create
             }
 
             $relation = $item->{$relationMethod}();
-            $relation_type = (new \ReflectionClass($relation))->getShortName();
+            $relation_type = get_class($relation);
 
             switch($relation_type) {
-                case 'HasOne':
-                case 'MorphOne':
+                case HasOne::class:
+                case MorphOne::class:
                     // we first check if there are relations of the relation
                     if (isset($relationData['relations'])) {
                         $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
@@ -227,37 +227,20 @@ trait Create
                         $modelInstance = $relation->updateOrCreate([], $relationData['values']);
                     }
                 break;
-            }
+                case HasMany::class:
+                case MorphMany::class:
+                    $relation_values = $relationData['values'][$relationMethod];
 
-            if ($relation instanceof HasOne || $relation instanceof MorphOne) {
-                if (isset($relationData['relations'])) {
-                    $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
-                        return $relation_data['relation_type'] == 'BelongsTo';
-                    });
-                    // adds the values of the BelongsTo relations of this entity to the array of values that will
-                    // be saved at the same time like we do in parent entity belongs to relations
-                    $valuesWithRelations = $this->associateHasOneBelongsTo($belongsToRelations, $relationData['values'], $relation->getModel());
+                    if (is_string($relation_values)) {
+                        $relation_values = json_decode($relationData['values'][$relationMethod], true);
+                    }
 
-                    $relationData['relations'] = Arr::where($relationData['relations'], function ($item) {
-                        return $item['relation_type'] != 'BelongsTo';
-                    });
-
-                    $modelInstance = $relation->updateOrCreate([], $valuesWithRelations);
-                } else {
-                    $modelInstance = $relation->updateOrCreate([], $relationData['values']);
-                }
-            } elseif ($relation instanceof HasMany || $relation instanceof MorphMany) {
-                $relation_values = $relationData['values'][$relationMethod];
-
-                if (is_string($relation_values)) {
-                    $relation_values = json_decode($relationData['values'][$relationMethod], true);
-                }
-
-                if (is_null($relation_values) || count($relation_values) == count($relation_values, COUNT_RECURSIVE)) {
-                    $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
-                } else {
-                    $this->createManyEntries($item, $relation, $relationMethod, $relationData);
-                }
+                    if (is_null($relation_values) || count($relation_values) == count($relation_values, COUNT_RECURSIVE)) {
+                        $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
+                    } else {
+                        $this->createManyEntries($item, $relation, $relationMethod, $relationData);
+                    }
+                break;
             }
 
             if (isset($relationData['relations'])) {
@@ -266,6 +249,15 @@ trait Create
         }
     }
 
+    /**
+     * Associate the nested HasOne -> BelongsTo relations by adding the "connecting key"
+     * to the array of values that is going to be saved with HasOne relation
+     *
+     * @param array $belongsToRelations
+     * @param array $modelValues
+     * @param Model $modelInstance
+     * @return array
+     */
     private function associateHasOneBelongsTo($belongsToRelations, $modelValues, $modelInstance)
     {
         foreach ($belongsToRelations as $methodName => $values) {

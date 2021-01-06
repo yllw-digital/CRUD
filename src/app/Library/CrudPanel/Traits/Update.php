@@ -106,15 +106,15 @@ trait Update
             $relationMethod = Arr::last($relation_array);
             if (method_exists($relatedModel, $relationMethod)) {
                 $relation = $relatedModel->{$relationMethod}();
-                $relation_type = (new \ReflectionClass($relation))->getShortName();
+                $relation_type = get_class($relation);
 
                 switch($relation_type) {
-                    case 'HasOne':
-                    case 'MorphOne':
+                    case HasOne::class:
+                    case MorphOne::class:
                         return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
                     break;
-                    case 'HasMany':
-                    case 'MorphMany':
+                    case HasMany::class:
+                    case MorphMany::class:
                         if (isset($field['pivotFields']) && is_array($field['pivotFields'])) {
                             $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
                                 return $field['name'] != $item['name'];
@@ -136,8 +136,8 @@ trait Update
                             return json_encode($return);
                         }
                     break;
-                    case 'BelongsToMany':
-                    case 'MorphToMany':
+                    case BelongsToMany::class:
+                    case MorphToMany::class:
                         // if pivot is true and there are `pivotFields` we need to get those pivot values to show on the edit page
                         if (isset($field['pivot']) && $field['pivot'] && isset($field['pivotFields']) && is_array($field['pivotFields'])) {
 
