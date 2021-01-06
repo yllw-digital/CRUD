@@ -92,7 +92,6 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
     /**
      * Undocumented function.
      *
-     * @group failing
      */
     public function testUpdateExistingOneToOneRelationship()
     {
@@ -122,7 +121,6 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
     /**
      * Undocumented function.
      *
-     * @group failing
      */
     public function testClearBelongsToRelationInOneToOneRelationship()
     {

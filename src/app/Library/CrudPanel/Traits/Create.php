@@ -204,6 +204,30 @@ trait Create
             }
 
             $relation = $item->{$relationMethod}();
+            $relation_type = (new \ReflectionClass($relation))->getShortName();
+
+            switch($relation_type) {
+                case 'HasOne':
+                case 'MorphOne':
+                    // we first check if there are relations of the relation
+                    if (isset($relationData['relations'])) {
+                        $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
+                            return $relation_data['relation_type'] == 'BelongsTo';
+                        });
+                        // adds the values of the BelongsTo relations of this entity to the array of values that will
+                        // be saved at the same time like we do in parent entity belongs to relations
+                        $valuesWithRelations = $this->associateHasOneBelongsTo($belongsToRelations, $relationData['values'], $relation->getModel());
+
+                        $relationData['relations'] = Arr::where($relationData['relations'], function ($item) {
+                            return $item['relation_type'] != 'BelongsTo';
+                        });
+
+                        $modelInstance = $relation->updateOrCreate([], $valuesWithRelations);
+                    } else {
+                        $modelInstance = $relation->updateOrCreate([], $relationData['values']);
+                    }
+                break;
+            }
 
             if ($relation instanceof HasOne || $relation instanceof MorphOne) {
                 if (isset($relationData['relations'])) {
@@ -291,10 +315,14 @@ trait Create
                     $fieldData['parent'] = $this->getRelationModel($attributeKey, -1);
                 }
 
+                // when using HasMany/MorphMany if fallback_id is provided instead of deleting the models
+                // from database we resort to this fallback provided by developer
                 if (array_key_exists('fallback_id', $relation_field)) {
                     $fieldData['fallback_id'] = $relation_field['fallback_id'];
                 }
 
+                // when using HasMany/MorphMany and column is nullable, by default backpack sets the value to null.
+                // this allow developers to override that behavior and force deletion from database
                 $fieldData['force_delete'] = $relation_field['force_delete'] ?? false;
 
                 if (! array_key_exists('relation_type', $fieldData)) {
@@ -310,6 +338,13 @@ trait Create
         return $relationData;
     }
 
+    /**
+     * Return the relation without any model attributes there.
+     * Eg. user.entity_id would return user, as entity_id is not a relation in user
+     *
+     * @param array $relation_field
+     * @return string
+     */
     public function getOnlyRelationEntity($relation_field)
     {
         $entity_array = explode('.', $relation_field['entity']);
@@ -342,13 +377,15 @@ trait Create
     {
         $model_instance = $relation->getRelated();
         $force_delete = $relationData['force_delete'];
+        $relation_foreign_key = $relation->getForeignKeyName();
+        $relation_local_key = $relation->getLocalKeyName();
 
-        $relation_column_is_nullable = $model_instance->isColumnNullable($relation->getForeignKeyName());
+        $relation_column_is_nullable = $model_instance->isColumnNullable($relation_foreign_key);
 
         if (! is_null($relation_values) && $relationData['values'][$relationMethod][0] !== null) {
             //we add the new values into the relation
             $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
-           ->update([$relation->getForeignKeyName() => $item->{$relation->getLocalKeyName()}]);
+           ->update([$relation_foreign_key => $item->{$relation_local_key}]);
 
             //we clear up any values that were removed from model relation.
             //if developer provided a fallback id, we use it
@@ -356,38 +393,38 @@ trait Create
             //if none of the above we delete the model from database
             if (isset($relationData['fallback_id'])) {
                 $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
-                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
-                            ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
+                            ->where($relation_foreign_key, $item->{$relation_local_key})
+                            ->update([$relation_foreign_key => $relationData['fallback_id']]);
             } else {
                 if (! $relation_column_is_nullable || $force_delete) {
                     $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
-                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
+                            ->where($relation_foreign_key, $item->{$relation_local_key})
                             ->delete();
                 } else {
                     $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
-                            ->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
-                            ->update([$relation->getForeignKeyName() => null]);
+                            ->where($relation_foreign_key, $item->{$relation_local_key})
+                            ->update([$relation_foreign_key => null]);
                 }
             }
         } else {
             //the developer cleared the selection
             //we gonna clear all related values by setting up the value to the fallback id, to null or delete.
             if (isset($relationData['fallback_id'])) {
-                $model_instance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
-                            ->update([$relation->getForeignKeyName() => $relationData['fallback_id']]);
+                $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
+                            ->update([$relation_foreign_key => $relationData['fallback_id']]);
             } else {
                 if (! $relation_column_is_nullable || $force_delete) {
-                    $model_instance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})->delete();
+                    $model_instance->where($relation_foreign_key, $item->{$relation_local_key})->delete();
                 } else {
-                    $model_instance->where($relation->getForeignKeyName(), $item->{$relation->getLocalKeyName()})
-                            ->update([$relation->getForeignKeyName() => null]);
+                    $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
+                            ->update([$relation_foreign_key => null]);
                 }
             }
         }
     }
 
     /**
-     * Handler HasMany/MorphMany relations when used as creatable entries in the crud.
+     * Handle HasMany/MorphMany relations when used as creatable entries in the crud.
      * By using repeatable field, developer can allow the creation of such entries
      * in the crud forms.
      *

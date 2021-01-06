@@ -204,7 +204,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
     /**
      * Undocumented function.
      *
-     * @group failing
      */
     public function testCreateWithOneToOneRelationship()
     {
@@ -232,7 +231,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
     /**
      * Undocumented function.
      *
-     * @group failing
      */
     public function testCreateBelongsToRelationInOneToOneRelationship()
     {

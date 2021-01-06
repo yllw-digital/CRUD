@@ -47,21 +47,25 @@ trait Relationships
     }
 
     /**
-     * Get the fields with specific relation types that are not nested relations.
+     * Get the fields for relationships, according to the relation type. It looks only for direct
+     * relations - it will NOT look through relationships of relationships.
      *
-     * @param array|string $relation_types
+     * @param string|array $relation_types Eloquent relation class or array of Eloquent relation classes. Eg: BelongsTo
      *
      * @return array The fields with corresponding relation types.
      */
     public function getFieldsWithRelationType($relation_types): array
     {
-        $relation_types = is_array($relation_types) ?: (array) $relation_types;
+        $relation_types = (array)$relation_types;
 
         return collect($this->fields())
             ->where('model')
             ->whereIn('relation_type', $relation_types)
             ->filter(function ($item) {
-                return Str::contains($item['entity'], '.') && $item['model'] !== get_class($this->model->{Arr::first(explode('.', $item['entity']))}()->getRelated()) ? false : true;
+
+                $related_model = get_class($this->model->{Arr::first(explode('.', $item['entity']))}()->getRelated());
+
+                return Str::contains($item['entity'], '.') && $item['model'] !== $related_model ? false : true;
             })
             ->toArray();
     }
@@ -134,9 +138,10 @@ trait Relationships
             case 'MorphToMany':
             case 'BelongsTo':
                 return 'relationship';
-
+            break;
             default:
                 return 'text';
+            break;
         }
     }
 
@@ -157,9 +162,10 @@ trait Relationships
             case 'MorphOneOrMany':
             case 'MorphToMany':
                 return true;
-
+            break;
             default:
                 return false;
+            break;
         }
     }
 
@@ -175,8 +181,10 @@ trait Relationships
             case 'BelongsToMany':
             case 'MorphToMany':
                 return true;
+            break;
             default:
                 return false;
+            break;
         }
     }
 

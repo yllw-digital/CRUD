@@ -570,6 +570,7 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertCount(1, $relationField);
     }
 
+
     public function testCanGetRelationFieldsByArrayOfRelations()
     {
         $this->crudPanel->setModel(User::class);
@@ -577,7 +578,8 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->crudPanel->addField('accountDetails.nickname');
         //this next field should not be returned because is not a direct relation
         $this->crudPanel->addField('accountDetails.article');
-        $relationField = $this->crudPanel->getFieldsWithRelationType(['BelongsToMany, HasOne']);
+        $relationField = $this->crudPanel->getFieldsWithRelationType(['BelongsToMany', 'HasOne']);
+
         $this->assertCount(2, $relationField);
     }
 }
