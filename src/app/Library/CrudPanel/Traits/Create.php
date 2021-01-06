@@ -206,7 +206,7 @@ trait Create
             $relation = $item->{$relationMethod}();
             $relation_type = get_class($relation);
 
-            switch($relation_type) {
+            switch ($relation_type) {
                 case HasOne::class:
                 case MorphOne::class:
                     // we first check if there are relations of the relation
@@ -251,7 +251,7 @@ trait Create
 
     /**
      * Associate the nested HasOne -> BelongsTo relations by adding the "connecting key"
-     * to the array of values that is going to be saved with HasOne relation
+     * to the array of values that is going to be saved with HasOne relation.
      *
      * @param array $belongsToRelations
      * @param array $modelValues
@@ -332,7 +332,7 @@ trait Create
 
     /**
      * Return the relation without any model attributes there.
-     * Eg. user.entity_id would return user, as entity_id is not a relation in user
+     * Eg. user.entity_id would return user, as entity_id is not a relation in user.
      *
      * @param array $relation_field
      * @return string

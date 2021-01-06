@@ -108,7 +108,7 @@ trait Update
                 $relation = $relatedModel->{$relationMethod}();
                 $relation_type = get_class($relation);
 
-                switch($relation_type) {
+                switch ($relation_type) {
                     case HasOne::class:
                     case MorphOne::class:
                         return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};

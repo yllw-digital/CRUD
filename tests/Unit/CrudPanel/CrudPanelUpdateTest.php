@@ -91,7 +91,6 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 
     /**
      * Undocumented function.
-     *
      */
     public function testUpdateExistingOneToOneRelationship()
     {
@@ -120,7 +119,6 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 
     /**
      * Undocumented function.
-     *
      */
     public function testClearBelongsToRelationInOneToOneRelationship()
     {
