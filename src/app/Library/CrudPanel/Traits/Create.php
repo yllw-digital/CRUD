@@ -252,8 +252,8 @@ trait Create
     /**
      * Associate and dissociate BelongsTo relations in the model.
      *
-     * @param  Model
-     * @param  array The form data.
+     * @param  Model $item
+     * @param  array $data The form data.
      * @return Model Model with relationships set up.
      */
     protected function associateOrDissociateBelongsToRelations($item, array $data)
