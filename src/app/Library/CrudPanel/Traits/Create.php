@@ -250,6 +250,29 @@ trait Create
     }
 
     /**
+     * Associate and dissociate BelongsTo relations in the model.
+     *
+     * @param  Model
+     * @param  array The form data.
+     * @return Model Model with relationships set up.
+     */
+    protected function associateOrDissociateBelongsToRelations($item, array $data)
+    {
+        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
+
+        foreach ($belongsToFields as $relationField) {
+            if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
+                $relatedId = Arr::get($data, $relationField['name']);
+                $related = $relationField['model']::find($relatedId);
+
+                $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+            }
+        }
+
+        return $item;
+    }
+
+    /**
      * Associate the nested HasOne -> BelongsTo relations by adding the "connecting key"
      * to the array of values that is going to be saved with HasOne relation.
      *
@@ -331,34 +354,6 @@ trait Create
     }
 
     /**
-     * Return the relation without any model attributes there.
-     * Eg. user.entity_id would return user, as entity_id is not a relation in user.
-     *
-     * @param array $relation_field
-     * @return string
-     */
-    public function getOnlyRelationEntity($relation_field)
-    {
-        $entity_array = explode('.', $relation_field['entity']);
-
-        $relation_model = $this->getRelationModel($relation_field['entity'], -1);
-
-        $related_method = Arr::last($entity_array);
-
-        if (! method_exists($relation_model, $related_method)) {
-            if (count($entity_array) <= 1) {
-                return $relation_field['entity'];
-            } else {
-                array_pop($entity_array);
-            }
-
-            return implode('.', $entity_array);
-        }
-
-        return $relation_field['entity'];
-    }
-
-    /**
      * When using the HasMany/MorphMany relations as selectable elements we use this function to sync those relations.
      * Here we allow for different functionality than when creating. Developer could use this relation as a
      * selectable list of items that can belong to one/none entity at any given time.
@@ -426,7 +421,6 @@ trait Create
     {
         $items = collect(json_decode($relationData['values'][$relationMethod], true));
         $relatedModel = $relation->getRelated();
-        $itemsInDatabase = $entry->{$relationMethod};
         //if the collection is empty we clear all previous values in database if any.
         if ($items->isEmpty()) {
             $entry->{$relationMethod}()->sync([]);

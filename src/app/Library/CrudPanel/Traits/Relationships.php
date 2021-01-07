@@ -199,25 +199,30 @@ trait Relationships
     }
 
     /**
-     * Associate and dissociate BelongsTo relations in the model.
+     * Return the relation without any model attributes there.
+     * Eg. user.entity_id would return user, as entity_id is not a relation in user.
      *
-     * @param  Model
-     * @param  array The form data.
-     * @return Model Model with relationships set up.
+     * @param array $relation_field
+     * @return string
      */
-    public function associateOrDissociateBelongsToRelations($item, array $data)
+    public function getOnlyRelationEntity($relation_field)
     {
-        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
+        $entity_array = explode('.', $relation_field['entity']);
 
-        foreach ($belongsToFields as $relationField) {
-            if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
-                $relatedId = Arr::get($data, $relationField['name']);
-                $related = $relationField['model']::find($relatedId);
+        $relation_model = $this->getRelationModel($relation_field['entity'], -1);
 
-                $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+        $related_method = Arr::last($entity_array);
+
+        if (! method_exists($relation_model, $related_method)) {
+            if (count($entity_array) <= 1) {
+                return $relation_field['entity'];
+            } else {
+                array_pop($entity_array);
             }
+
+            return implode('.', $entity_array);
         }
 
-        return $item;
+        return $relation_field['entity'];
     }
 }
