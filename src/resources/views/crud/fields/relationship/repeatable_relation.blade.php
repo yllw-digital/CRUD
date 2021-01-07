@@ -16,7 +16,7 @@
             'label' => $field['label'],
             'multiple' => false,
             'ajax' => $field['ajax'] ?? false,
-            'data_source' => $field['data_source'] ?? isset($field['ajax']) && $field['ajax'] ? url($crud->route.'/fetch/'.$routeEntity) : 'false';
+            'data_source' => $field['data_source'] ?? isset($field['ajax']) && $field['ajax'] ? url($crud->route.'/fetch/'.$routeEntity) : 'false',
             'wrapper' => $field['pivot_wrapper'] ?? [],
             'minimum_input_length' => $field['minimum_input_length'] ?? 2,
     ];

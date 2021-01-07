@@ -43,9 +43,9 @@
                 }
             }
         break;
-        case: 'MorphToMany':
-        case: 'MorphToMany':
-        case: 'HasMany':
+        case 'MorphMany':
+        case 'MorphToMany':
+        case 'HasMany':
             // if there is pivot fields we show the repeatable field
             if(isset($field['pivotFields'])) {
                 $field['type'] = 'repeatable_relation';
