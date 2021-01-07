@@ -118,7 +118,7 @@ trait Update
 
                         $attribute_value = $this->getManyRelationAttributeValue($relatedModel, $relationMethod, $field);
                         // we only want to return the json_encoded values here
-                        if(is_string($attribute_value)) {
+                        if (is_string($attribute_value)) {
                             return $attribute_value;
                         }
 
@@ -127,7 +127,7 @@ trait Update
                     case MorphToMany::class:
                         $attribute_value = $this->getToManyRelationAttributeValue($relatedModel, $relationMethod, $field);
                         // we only want to return the json_encoded values here
-                        if(is_string($attribute_value)) {
+                        if (is_string($attribute_value)) {
                             return $attribute_value;
                         }
                     break;
@@ -157,11 +157,11 @@ trait Update
      * @param Illuminate\Database\Eloquent\Model $model
      * @param string $relation_method
      * @param array $field
-     * @return boolean|string
+     * @return bool|string
      */
     private function getManyRelationAttributeValue($model, $relation_method, $field)
     {
-        if (!isset($field['pivotFields']) || !is_array($field['pivotFields'])) {
+        if (! isset($field['pivotFields']) || ! is_array($field['pivotFields'])) {
             return false;
         }
 
@@ -191,12 +191,12 @@ trait Update
      * @param Illuminate\Database\Eloquent\Model $model
      * @param string $relation_method
      * @param array $field
-     * @return boolean|string
+     * @return bool|string
      */
     private function getToManyRelationAttributeValue($model, $relation_method, $field)
     {
         // if pivot is true and there are `pivotFields` we need to get those pivot values to show on the edit page
-        if (!isset($field['pivot']) || !isset($field['pivotFields']) || !is_array($field['pivotFields'])) {
+        if (! isset($field['pivot']) || ! isset($field['pivotFields']) || ! is_array($field['pivotFields'])) {
             return false;
         }
 
