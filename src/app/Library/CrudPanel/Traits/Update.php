@@ -112,7 +112,7 @@ trait Update
                     case HasOne::class:
                     case MorphOne::class:
                         return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
-                    break;
+
                     case HasMany::class:
                     case MorphMany::class:
 
@@ -154,7 +154,7 @@ trait Update
     /**
      * Returns the json encoded pivot fields from HasMany/MorphMany relations when available.
      *
-     * @param Illuminate\Database\Eloquent\Model $model
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @param string $relation_method
      * @param array $field
      * @return bool|string
@@ -188,7 +188,7 @@ trait Update
     /**
      * Returns the json encoded pivot fields from HasMany/MorphMany relations when available.
      *
-     * @param Illuminate\Database\Eloquent\Model $model
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @param string $relation_method
      * @param array $field
      * @return bool|string
