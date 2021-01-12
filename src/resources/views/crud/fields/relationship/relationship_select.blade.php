@@ -56,7 +56,7 @@
     <label>{!! $field['label'] !!}</label>
 
     <select
-        style="width:100%"
+        style="width: 100%; min-height: 38px!important;"
         name="{{ $field['name'].($field['multiple']?'[]':'') }}"
         data-init-function="bpFieldInitRelationshipSelectElement"
         data-column-nullable="{{ var_export($field['allows_null']) }}"
