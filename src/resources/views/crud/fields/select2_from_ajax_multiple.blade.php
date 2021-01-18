@@ -129,7 +129,7 @@
                         if ($includeAllFormFields) {
                             // we trigger this event so that fields in need to parse their value before sent in some ajax request,
                             // case of repeatable, can catch it and be sent with main form.
-                            form.trigger('backpack_field.parse_value');
+                            form.trigger('backpack_field.parse_value', element);
 
                             return {
                                 q: params.term, // search term
