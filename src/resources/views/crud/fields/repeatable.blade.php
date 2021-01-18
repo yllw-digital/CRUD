@@ -115,15 +115,14 @@
          */
         function bpFieldInitRepeatableElement(element) {
 
-            var field_name = element.attr('name');
-            var form = element.closest('form');
-
-            let formEvents = jQuery._data( form[0], "events" );
+            let field_name = element.attr('name');
+            let form = element.closest('form');
+            let form_events = jQuery._data(form[0], 'events');
 
             // create a new event handler that will parse the repeatable values to the hidden inputs
             // so they can be submited along with form when requesting some ajax endpoint
             // we check that the event is not registered twice
-            if (!('backpack_field' in formEvents) || Object.values(formEvents.backpack_field).filter(function(e) { return e.namespace === 'parse_value'; }).length == 0) {
+            if (!('backpack_field' in form_events) || !Object.values(form_events.backpack_field).find(e => e.namespace === 'parse_value')) {
 
                 form.on('backpack_field.parse_value', function(evt, element) {
                     // TODO: element is the input that made the ajax request
