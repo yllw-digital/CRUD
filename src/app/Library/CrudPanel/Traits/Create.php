@@ -104,8 +104,13 @@ trait Create
      */
     public function createRelations($item, $data)
     {
+        $relationData = $this->getRelationDataFromFormData($data);
+
+        // handles 1-1 and 1-n relations (HasOne, MorphOne, HasMany, MorphMany)
+        $this->createRelationsForItem($item, $relationData);
+
+        // this specifically handles M-M relations that could sync additional information into pivot table
         $this->syncPivot($item, $data);
-        $this->createOneToOneRelations($item, $data);
     }
 
     /**
@@ -173,19 +178,8 @@ trait Create
     }
 
     /**
-     * Create any existing one to one relations and subsquent relations for the item.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $item The current CRUD model.
-     * @param array                               $data The form data.
-     */
-    private function createOneToOneRelations($item, $data)
-    {
-        $relationData = $this->getRelationDataFromFormData($data);
-        $this->createRelationsForItem($item, $relationData);
-    }
-
-    /**
-     * Create any existing one to one relations and subsquent relations from form data.
+     * Handles 1-1 and 1-n relations. In case 1-1 it handles subsequent relations in connected models
+     * For example, a Monster > HasOne Address > BelongsTo a Country.
      *
      * @param \Illuminate\Database\Eloquent\Model $item          The current CRUD model.
      * @param array                               $formattedData The form data.
@@ -211,13 +205,16 @@ trait Create
                 case MorphOne::class:
                     // we first check if there are relations of the relation
                     if (isset($relationData['relations'])) {
+                        // if there are nested relations, we first add the BelongsTo like in main entry
                         $belongsToRelations = Arr::where($relationData['relations'], function ($relation_data) {
                             return $relation_data['relation_type'] == 'BelongsTo';
                         });
+
                         // adds the values of the BelongsTo relations of this entity to the array of values that will
                         // be saved at the same time like we do in parent entity belongs to relations
                         $valuesWithRelations = $this->associateHasOneBelongsTo($belongsToRelations, $relationData['values'], $relation->getModel());
 
+                        // remove previously added BelongsTo relations from relation data.
                         $relationData['relations'] = Arr::where($relationData['relations'], function ($item) {
                             return $item['relation_type'] != 'BelongsTo';
                         });
@@ -229,6 +226,7 @@ trait Create
                 break;
                 case HasMany::class:
                 case MorphMany::class:
+
                     $relation_values = $relationData['values'][$relationMethod];
 
                     if (is_string($relation_values)) {
@@ -263,9 +261,13 @@ trait Create
         foreach ($belongsToFields as $relationField) {
             if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
                 $relatedId = Arr::get($data, $relationField['name']);
-                $related = $relationField['model']::find($relatedId);
+                if(isset($relatedId) && !is_null($relatedId)) {
+                    $related = $relationField['model']::find($relatedId);
 
-                $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+                    $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
+                }else{
+                    $item->{$this->getOnlyRelationEntity($relationField)}()->dissociate();
+                }
             }
         }
 
@@ -278,13 +280,14 @@ trait Create
      *
      * @param array $belongsToRelations
      * @param array $modelValues
-     * @param Model $modelInstance
+     * @param Model $relationInstance
      * @return array
      */
     private function associateHasOneBelongsTo($belongsToRelations, $modelValues, $modelInstance)
     {
         foreach ($belongsToRelations as $methodName => $values) {
             $relation = $modelInstance->{$methodName}();
+
             $modelValues[$relation->getForeignKeyName()] = $values['values'][$methodName];
         }
 
@@ -370,14 +373,14 @@ trait Create
         $relation_column_is_nullable = $model_instance->isColumnNullable($relation_foreign_key);
 
         if (! is_null($relation_values) && $relationData['values'][$relationMethod][0] !== null) {
-            //we add the new values into the relation
+            // we add the new values into the relation
             $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
            ->update([$relation_foreign_key => $item->{$relation_local_key}]);
 
-            //we clear up any values that were removed from model relation.
-            //if developer provided a fallback id, we use it
-            //if column is nullable we set it to null
-            //if none of the above we delete the model from database
+            // we clear up any values that were removed from model relation.
+            // if developer provided a fallback id, we use it
+            // if column is nullable we set it to null if developer didn't specify `force_delete => true`
+            // if none of the above we delete the model from database
             if (isset($relationData['fallback_id'])) {
                 $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
                             ->where($relation_foreign_key, $item->{$relation_local_key})
@@ -419,29 +422,30 @@ trait Create
      */
     public function createManyEntries($entry, $relation, $relationMethod, $relationData)
     {
-        $items = collect(json_decode($relationData['values'][$relationMethod], true));
-        $relatedModel = $relation->getRelated();
+        $items = json_decode($relationData['values'][$relationMethod], true);
+
+        $relation_local_key = $relation->getLocalKeyName();
+
         //if the collection is empty we clear all previous values in database if any.
-        if ($items->isEmpty()) {
+        if (empty($items)) {
             $entry->{$relationMethod}()->sync([]);
         } else {
-            $items->each(function (&$item, $key) use ($relatedModel, $entry, $relationMethod) {
-                if (isset($item[$relatedModel->getKeyName()])) {
-                    $entry->{$relationMethod}()->updateOrCreate([$relatedModel->getKeyName() => $item[$relatedModel->getKeyName()]], $item);
+            $created_ids = [];
+
+            foreach($items as $item) {
+                if (isset($item[$relation_local_key]) && !empty($item[$relation_local_key])) {
+                    $entry->{$relationMethod}()->updateOrCreate([$relation_local_key => $item[$relation_local_key]], $item);
                 } else {
-                    $entry->{$relationMethod}()->updateOrCreate([], $item);
+                    $created_ids[] = $entry->{$relationMethod}()->create($item)->{$relation_local_key};
                 }
-            });
+            }
 
-            $relatedItemsSent = $items->pluck($relatedModel->getKeyName());
+            // get from $items the sent ids, and merge the ones created.
+            $relatedItemsSent = array_merge(array_filter(Arr::pluck($items, $relation_local_key)), $created_ids);
 
-            if (! $relatedItemsSent->isEmpty()) {
+            if (! empty($relatedItemsSent)) {
                 //we perform the cleanup of removed database items
-                $entry->{$relationMethod}->each(function ($item, $key) use ($relatedItemsSent) {
-                    if (! $relatedItemsSent->contains($item->getKey())) {
-                        $item->delete();
-                    }
-                });
+                $entry->{$relationMethod}()->whereNotIn($relation_local_key,$relatedItemsSent)->delete();
             }
         }
     }

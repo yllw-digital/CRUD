@@ -116,7 +116,7 @@ trait Update
                     case HasMany::class:
                     case MorphMany::class:
 
-                        $attribute_value = $this->getManyRelationAttributeValue($relatedModel, $relationMethod, $field);
+                        $attribute_value = $this->getManyRelationAttributeValue($relatedModel, $relationMethod, $field, $relation_type);
                         // we only want to return the json_encoded values here
                         if (is_string($attribute_value)) {
                             return $attribute_value;
@@ -125,7 +125,7 @@ trait Update
                     break;
                     case BelongsToMany::class:
                     case MorphToMany::class:
-                        $attribute_value = $this->getToManyRelationAttributeValue($relatedModel, $relationMethod, $field);
+                        $attribute_value = $this->getManyRelationAttributeValue($relatedModel, $relationMethod, $field, $relation_type);
                         // we only want to return the json_encoded values here
                         if (is_string($attribute_value)) {
                             return $attribute_value;
@@ -152,14 +152,15 @@ trait Update
     }
 
     /**
-     * Returns the json encoded pivot fields from HasMany/MorphMany relations when available.
+     * Returns the json encoded pivot fields from supported relations.
      *
      * @param \Illuminate\Database\Eloquent\Model $model
      * @param string $relation_method
      * @param array $field
+     * @param string $relation_type
      * @return bool|string
      */
-    private function getManyRelationAttributeValue($model, $relation_method, $field)
+    private function getManyRelationAttributeValue($model, $relation_method, $field, $relation_type)
     {
         if (! isset($field['pivotFields']) || ! is_array($field['pivotFields'])) {
             return false;
@@ -170,55 +171,30 @@ trait Update
         });
         $related_models = $model->{$relation_method};
         $return = [];
-
         // for any given model, we grab the attributes that belong to our pivot table.
         foreach ($related_models as $related_model) {
             $item = [];
-            //for any given related model, we attach the pivot fields.
-            foreach ($pivot_fields as $pivot_field) {
-                $item[$pivot_field['name']] = $related_model->{$pivot_field['name']};
+            switch($relation_type) {
+                case HasMany::class:
+                case MorphMany::class:
+                        // for any given related model, we get the value from pivot fields
+                        foreach ($pivot_fields as $pivot_field) {
+                            $item[$pivot_field['name']] = $related_model->{$pivot_field['name']};
+                        }
+                        $item[$related_model->getKeyName()] = $related_model->getKey();
+                        $return[] = $item;
+            break;
+            case BelongsToMany::class:
+            case MorphToMany::class:
+
+                    $item[$field['name']] = $related_model->getKey();
+                    //for any given related model, we get the pivot fields.
+                    foreach ($pivot_fields as $pivot_field) {
+                        $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
+                    }
+                    $return[] = $item;
             }
-            $item[$related_model->getKeyName()] = $related_model->getKey();
-            $return[] = $item;
         }
-        // we return the json encoded result as expected by repeatable field.
-        return json_encode($return);
-    }
-
-    /**
-     * Returns the json encoded pivot fields from HasMany/MorphMany relations when available.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param string $relation_method
-     * @param array $field
-     * @return bool|string
-     */
-    private function getToManyRelationAttributeValue($model, $relation_method, $field)
-    {
-        // if pivot is true and there are `pivotFields` we need to get those pivot values to show on the edit page
-        if (! isset($field['pivot']) || ! isset($field['pivotFields']) || ! is_array($field['pivotFields'])) {
-            return false;
-        }
-
-        // we remove our current relation from the pivotFields.
-        $pivot_fields = Arr::where($field['pivotFields'], function ($item) use ($field) {
-            return $field['name'] != $item['name'];
-        });
-
-        $related_models = $model->{$relation_method};
-        $return = [];
-
-        // for any given model, we grab the attributes that belong to our pivot table.
-        foreach ($related_models as $related_model) {
-            $item = [];
-            $item[$field['name']] = $related_model->getKey();
-            //for any given related model, we get the pivot fields.
-            foreach ($pivot_fields as $pivot_field) {
-                $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
-            }
-            $return[] = $item;
-        }
-
         // we return the json encoded result as expected by repeatable field.
         return json_encode($return);
     }
