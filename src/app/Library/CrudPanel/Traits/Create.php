@@ -261,11 +261,11 @@ trait Create
         foreach ($belongsToFields as $relationField) {
             if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
                 $relatedId = Arr::get($data, $relationField['name']);
-                if(isset($relatedId) && !is_null($relatedId)) {
+                if (isset($relatedId) && ! is_null($relatedId)) {
                     $related = $relationField['model']::find($relatedId);
 
                     $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
-                }else{
+                } else {
                     $item->{$this->getOnlyRelationEntity($relationField)}()->dissociate();
                 }
             }
@@ -432,8 +432,8 @@ trait Create
         } else {
             $created_ids = [];
 
-            foreach($items as $item) {
-                if (isset($item[$relation_local_key]) && !empty($item[$relation_local_key])) {
+            foreach ($items as $item) {
+                if (isset($item[$relation_local_key]) && ! empty($item[$relation_local_key])) {
                     $entry->{$relationMethod}()->updateOrCreate([$relation_local_key => $item[$relation_local_key]], $item);
                 } else {
                     $created_ids[] = $entry->{$relationMethod}()->create($item)->{$relation_local_key};
@@ -445,7 +445,7 @@ trait Create
 
             if (! empty($relatedItemsSent)) {
                 //we perform the cleanup of removed database items
-                $entry->{$relationMethod}()->whereNotIn($relation_local_key,$relatedItemsSent)->delete();
+                $entry->{$relationMethod}()->whereNotIn($relation_local_key, $relatedItemsSent)->delete();
             }
         }
     }

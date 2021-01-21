@@ -174,7 +174,7 @@ trait Update
         // for any given model, we grab the attributes that belong to our pivot table.
         foreach ($related_models as $related_model) {
             $item = [];
-            switch($relation_type) {
+            switch ($relation_type) {
                 case HasMany::class:
                 case MorphMany::class:
                         // for any given related model, we get the value from pivot fields
