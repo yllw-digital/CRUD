@@ -14,3 +14,5 @@
     {{$element}}="{{$value}}"
 @endforeach
 >
+<span class="d-inline-flex">
+<span>{{ $column['wrapper']['prefix'] }}</span>
