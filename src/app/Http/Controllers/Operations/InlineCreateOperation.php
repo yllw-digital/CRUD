@@ -19,12 +19,12 @@ trait InlineCreateOperation
         Route::post($segment.'/inline/create/modal', [
             'as'        => $segment.'-inline-create',
             'uses'      => $controller.'@getInlineCreateModal',
-            'operation' => 'InlineCreate',
+            'operation' => 'DefaultInlineCreate',
         ]);
         Route::post($segment.'/inline/create', [
             'as'        => $segment.'-inline-create-save',
             'uses'      => $controller.'@storeInlineCreate',
-            'operation' => 'InlineCreate',
+            'operation' => 'DefaultInlineCreate',
         ]);
     }
 
@@ -33,17 +33,18 @@ trait InlineCreateOperation
      *  1 - InlineCreateOperation must be added AFTER CreateOperation trait.
      *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud)
      *
-     *  Both problems are solved using this setup because it will only be called when InlineCreate route is requested, so even that we need to call
-     *  setup again (we are creating a "new" crud panel to show in modal), it will not affect other operation setups.
+     *  We use this setup to make this operation behaviour similar to other operations, so developer could still override
+     *  the defaults with `setupInlineCreateOperation` as with any other operation.
      *
-     *  The downside of it, and why we need this explanation note, is that using `setupInlineCreateOperation`
-     *  in your CrudController to override/configure this operation will not have the same behaviour as
-     *  other operations.
+     *  `setupInlineCreateDefaults` is not used because of the time it is called in the stack. The "defaults" are applied in backpack
+     *  to all operations, before applying operation specific setups. As this operation directly need to call other
+     *  methods in the CrudController, it should only be "initialized" when it's requested.
      *
-     *  Usually you would just `setupSomeOperation()` and add your own setup of the operation. In this specific case is a little bit different,
-     *  this code is the minimum needed to run the operation, and should be present if you override this method in your CrudController.
+     *  To solve the mentioned problems we initialize the operation defaults at the same time we apply developer setup. Developer settings
+     *  are applied after the defaults to prevail.
+     *
      */
-    public function setupInlineCreateOperation()
+    protected function setupDefaultInlineCreateOperation()
     {
         if (method_exists($this, 'setup')) {
             $this->setup();
@@ -53,7 +54,12 @@ trait InlineCreateOperation
         }
 
         $this->crud->applyConfigurationFromSettings('create');
+
+        if(method_exists($this, 'setupInlineCreateOperation')) {
+            $this->setupInlineCreateOperation();
+        }
     }
+
 
     /**
      * Returns the HTML of the create form. It's used by the CreateInline operation, to show that form
