@@ -29,10 +29,21 @@ trait InlineCreateOperation
     }
 
     /**
-     * Setup operation default settings. We run setup() and setupCreateOperation() because those are run in middleware
-     * and to get the fields we need them earlier in application lifecycle.
+     *  This operation have some known quirks that can only be addressed using this setup instead of `setupInlineCreateDefaults`
+     *  1 - InlineCreateOperation must be added AFTER CreateOperation trait.
+     *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud)
+     *
+     *  Both problems are solved using this setup because it will only be called when InlineCreate route is requested, so even that we need to call
+     *  setup again (we are creating a "new" crud panel to show in modal), it will not affect other operation setups.
+     *
+     *  The downside of it, and why we need this explanation note, is that using `setupInlineCreateOperation`
+     *  in your CrudController to override/configure this operation will not have the same behaviour as
+     *  other operations.
+     *
+     *  Usually you would just `setupSomeOperation()` and add your own setup of the operation. In this specific case is a little bit different,
+     *  this code is the minimum needed to run the operation, and should be present if you override this method in your CrudController.
      */
-    protected function setupInlineCreateDefaults()
+    public function setupInlineCreateOperation()
     {
         if (method_exists($this, 'setup')) {
             $this->setup();
