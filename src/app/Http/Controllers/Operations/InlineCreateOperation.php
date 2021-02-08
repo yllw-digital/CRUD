@@ -42,7 +42,6 @@ trait InlineCreateOperation
      *
      *  To solve the mentioned problems we initialize the operation defaults at the same time we apply developer setup. Developer settings
      *  are applied after the defaults to prevail.
-     *
      */
     protected function setupDefaultInlineCreateOperation()
     {
@@ -55,11 +54,10 @@ trait InlineCreateOperation
 
         $this->crud->applyConfigurationFromSettings('create');
 
-        if(method_exists($this, 'setupInlineCreateOperation')) {
+        if (method_exists($this, 'setupInlineCreateOperation')) {
             $this->setupInlineCreateOperation();
         }
     }
-
 
     /**
      * Returns the HTML of the create form. It's used by the CreateInline operation, to show that form
