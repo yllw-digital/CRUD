@@ -31,7 +31,7 @@ trait InlineCreateOperation
     /**
      *  This operation have some known quirks that can only be addressed using this setup instead of `setupInlineCreateDefaults`
      *  1 - InlineCreateOperation must be added AFTER CreateOperation trait.
-     *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud)
+     *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud).
      *
      *  We use this setup to make this operation behaviour similar to other operations, so developer could still override
      *  the defaults with `setupInlineCreateOperation` as with any other operation.
