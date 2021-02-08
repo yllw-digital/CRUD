@@ -31,7 +31,7 @@ trait InlineCreateOperation
     /**
      *  This operation have some known quirks that can only be addressed using this setup instead of `setupInlineCreateDefaults`
      *  1 - InlineCreateOperation must be added AFTER CreateOperation trait.
-     *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud)
+     *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud).
      *
      *  Both problems are solved using this setup because it will only be called when InlineCreate route is requested, so even that we need to call
      *  setup again (we are creating a "new" crud panel to show in modal), it will not affect other operation setups.
