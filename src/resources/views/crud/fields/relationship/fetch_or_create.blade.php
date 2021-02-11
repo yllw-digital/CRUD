@@ -253,7 +253,6 @@ function setupInlineCreateButtons(element) {
     var $inlineModalClass = element.attr('data-inline-modal-class');
     var $parentLoadedFields = element.attr('data-parent-loaded-fields');
     var $includeMainFormFields = element.attr('data-include-main-form-fields') == 'false' ? false : (element.attr('data-include-main-form-fields') == 'true' ? true : element.attr('data-include-main-form-fields'));
-
     var $form = element.closest('form');
 
     $inlineCreateButtonElement.on('click', function () {
@@ -267,17 +266,18 @@ function setupInlineCreateButtons(element) {
 
         }
 
-        //prepare main form fields to be submited in case there are some.
-        if(typeof $includeMainFormFields === "boolean" && $includeMainFormFields === true) {
-
+        if($includeMainFormFields !== false) {
             // we trigger this event so that fields in need to parse their value before sent in some ajax request,
             // case of repeatable, can catch it and be sent with main form.
             $form.trigger('backpack_field.parse_value', element);
+        }
 
+        //prepare main form fields to be submited in case there are some.
+        if($includeMainFormFields === true) {
             var $toPass = $form.serializeArray();
 
         }else{
-            if(typeof $includeMainFormFields !== "boolean") {
+            if(typeof $includeMainFormFields === "string") {
             var $fields = JSON.parse($includeMainFormFields);
             var $serializedForm = $form.serializeArray();
             var $toPass = [];
@@ -290,6 +290,7 @@ function setupInlineCreateButtons(element) {
                 $includeMainFormFields = true;
             }
         }
+
         $.ajax({
             url: $inlineModalRoute,
             data: (function() {
