@@ -131,7 +131,7 @@
             // create a new event handler that will parse the repeatable values to the hidden inputs
             // so they can be submited along with form when requesting some ajax endpoint
             // we check that the event is not registered twice
-            if (!('backpack_field' in form_events) || !Object.values(form_events.backpack_field).find(e => e.namespace === 'parse_value')) {
+            if (typeof form_events === 'undefined' || !('backpack_field' in form_events) || !Object.values(form_events.backpack_field).find(e => e.namespace === 'parse_value')) {
 
                 form.on('backpack_field.parse_value', function(evt, element) {
                     // TODO: element is the input that made the ajax request
