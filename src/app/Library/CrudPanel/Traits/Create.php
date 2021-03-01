@@ -403,7 +403,7 @@ trait Create
                 $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
                             ->update([$relation_foreign_key => $relationData['fallback_id']]);
             } else {
-                if (!$relation_column_is_nullable || $force_delete) {
+                if (! $relation_column_is_nullable || $force_delete) {
                     $model_instance->where($relation_foreign_key, $item->{$relation_local_key})->delete();
                 } else {
                     $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
