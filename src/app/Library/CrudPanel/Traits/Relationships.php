@@ -26,7 +26,7 @@ trait Relationships
         }
         $relation_model = new $relation_model();
 
-        //if counts are diferent means that last element of entity is the field in relation.
+        // if counts are diferent means that last element of entity is the field in relation.
         if (count(explode('.', $entity)) != count(explode('.', $field['entity']))) {
             if (in_array($related_method, $relation_model->getFillable())) {
                 if (count($entity_array) > 1) {
@@ -105,7 +105,7 @@ trait Relationships
     public function parseRelationFieldNamesFromHtml($fields)
     {
         foreach ($fields as &$field) {
-            //we only want to parse fields that has a relation type and their name contains [ ] used in html.
+            // we only want to parse fields that has a relation type and their name contains [ ] used in html.
             if (isset($field['relation_type']) && preg_match('/[\[\]]/', $field['name']) !== 0) {
                 $chunks = explode('[', $field['name']);
 

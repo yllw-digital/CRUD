@@ -122,14 +122,14 @@ trait Create
     public function syncPivot($model, $data)
     {
         $fields_with_relationships = $this->getRelationFieldsWithPivot();
-        foreach ($fields_with_relationships as $key => $field) {
+        foreach ($fields_with_relationships as $field) {
             $values = isset($data[$field['name']]) ? $data[$field['name']] : [];
 
             // if a JSON was passed instead of an array, turn it into an array
             if (is_string($values)) {
                 $decoded_values = json_decode($values, true);
                 $values = [];
-                //array is not multidimensional
+                // array is not multidimensional
                 if (count($decoded_values) != count($decoded_values, COUNT_RECURSIVE)) {
                     foreach ($decoded_values as $value) {
                         $values[] = $value[$field['name']];
@@ -146,7 +146,7 @@ trait Create
                     $pivot_data = [];
 
                     if (isset($field['pivotFields'])) {
-                        //array is not multidimensional
+                        // array is not multidimensional
                         if (count($field['pivotFields']) == count($field['pivotFields'], COUNT_RECURSIVE)) {
                             foreach ($field['pivotFields'] as $pivot_field_name) {
                                 $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
@@ -154,12 +154,12 @@ trait Create
                         } else {
                             $field_data = json_decode($data[$field['name']], true);
 
-                            //we grab from the parsed data the specific values for this pivot
-                            $pivot_data = Arr::first(Arr::where($field_data, function ($item) use ($pivot_id, $field) {
+                            // we grab from the parsed data the specific values for this pivot
+                            $pivot_data = Arr::first($field_data, function ($item) use ($pivot_id, $field) {
                                 return $item[$field['name']] === $pivot_id;
-                            }));
+                            });
 
-                            //we remove the relation field from extra pivot data as we already have the relation.
+                            // we remove the relation field from extra pivot data as we already have the relation.
                             unset($pivot_data[$field['name']]);
                         }
                     }
@@ -233,7 +233,7 @@ trait Create
                         $relation_values = json_decode($relationData['values'][$relationMethod], true);
                     }
 
-                    if (is_null($relation_values) || count($relation_values) == count($relation_values, COUNT_RECURSIVE)) {
+                    if ($relation_values === null || count($relation_values) == count($relation_values, COUNT_RECURSIVE)) {
                         $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
                     } else {
                         $this->createManyEntries($item, $relation, $relationMethod, $relationData);
@@ -261,7 +261,7 @@ trait Create
         foreach ($belongsToFields as $relationField) {
             if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
                 $relatedId = Arr::get($data, $relationField['name']);
-                if (isset($relatedId) && ! is_null($relatedId)) {
+                if (isset($relatedId) && $relatedId !== null) {
                     $related = $relationField['model']::find($relatedId);
 
                     $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
@@ -372,7 +372,7 @@ trait Create
 
         $relation_column_is_nullable = $model_instance->isColumnNullable($relation_foreign_key);
 
-        if (! is_null($relation_values) && $relationData['values'][$relationMethod][0] !== null) {
+        if ($relation_values !== null && $relationData['values'][$relationMethod][0] !== null) {
             // we add the new values into the relation
             $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
            ->update([$relation_foreign_key => $item->{$relation_local_key}]);
@@ -397,13 +397,13 @@ trait Create
                 }
             }
         } else {
-            //the developer cleared the selection
-            //we gonna clear all related values by setting up the value to the fallback id, to null or delete.
+            // the developer cleared the selection
+            // we gonna clear all related values by setting up the value to the fallback id, to null or delete.
             if (isset($relationData['fallback_id'])) {
                 $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
                             ->update([$relation_foreign_key => $relationData['fallback_id']]);
             } else {
-                if (! $relation_column_is_nullable || $force_delete) {
+                if (!$relation_column_is_nullable || $force_delete) {
                     $model_instance->where($relation_foreign_key, $item->{$relation_local_key})->delete();
                 } else {
                     $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
@@ -426,7 +426,7 @@ trait Create
 
         $relation_local_key = $relation->getLocalKeyName();
 
-        //if the collection is empty we clear all previous values in database if any.
+        // if the collection is empty we clear all previous values in database if any.
         if (empty($items)) {
             $entry->{$relationMethod}()->sync([]);
         } else {
@@ -444,7 +444,7 @@ trait Create
             $relatedItemsSent = array_merge(array_filter(Arr::pluck($items, $relation_local_key)), $created_ids);
 
             if (! empty($relatedItemsSent)) {
-                //we perform the cleanup of removed database items
+                // we perform the cleanup of removed database items
                 $entry->{$relationMethod}()->whereNotIn($relation_local_key, $relatedItemsSent)->delete();
             }
         }

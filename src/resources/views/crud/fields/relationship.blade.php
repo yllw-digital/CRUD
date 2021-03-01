@@ -1,4 +1,4 @@
-<!--
+{{-- 
     This field is a switchboard for the "real" relation fields AKA selects and repeatable.
     Based on developer preferences and the relation type we "guess" the best solution
     we can provide for the user, and use those field types (select/repeatable) accordingly.
@@ -6,7 +6,7 @@
     As relationships are the only thing allowed to "InlineCreate", that functionality is also handled here.
     We have a dedicated file for the inline create functionality that is `fetch_or_create`, that is basically
     a select2 with ajax enabled that allow to create a new entity without leaving the crud
--->
+--}}
 
 @php
     if(isset($field['inline_create']) && !is_array($field['inline_create'])) {
