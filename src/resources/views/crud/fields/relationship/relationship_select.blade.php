@@ -65,7 +65,6 @@
         data-include-all-form-fields="{{ var_export($field['include_all_form_fields']) }}"
         data-current-value="{{ $field['value'] }}"
         data-field-multiple="{{var_export($field['multiple'])}}"
-        data-app-current-lang="{{ app()->getLocale() }}"
 
         @include('crud::fields.inc.attributes', ['default_class' =>  'form-control'])
 
@@ -175,16 +174,6 @@
         if (!$(element).hasClass("select2-hidden-accessible"))
         {
             $(element).select2($select2Settings);
-             // if any dependencies have been declared
-            // when one of those dependencies changes value
-            // reset the select2 value
-            for (var i=0; i < $dependencies.length; i++) {
-                $dependency = $dependencies[i];
-                $('input[name='+$dependency+'], select[name='+$dependency+'], checkbox[name='+$dependency+'], radio[name='+$dependency+'], textarea[name='+$dependency+']').change(function () {
-                    element.val(null).trigger("change");
-                });
-
-            }
         }
 
         $(element).on("select2:unselect", function(e){
@@ -207,20 +196,6 @@
             }
         });
     }
-
-    if (typeof processItemText !== 'function') {
-    function processItemText(item, $fieldAttribute, $appLang) {
-        if(typeof item[$fieldAttribute] === 'object' && item[$fieldAttribute] !== null)  {
-                        if(item[$fieldAttribute][$appLang] != 'undefined') {
-                            return item[$fieldAttribute][$appLang];
-                        }else{
-                            return item[$fieldAttribute][0];
-                        }
-                    }else{
-                        return item[$fieldAttribute];
-                    }
-    }
-}
 </script>
 @endpush
 @endif
