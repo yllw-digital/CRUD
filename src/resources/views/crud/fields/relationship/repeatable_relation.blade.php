@@ -1,4 +1,4 @@
-{{-- 
+{{--
     This field is a switchboard for the "real" field that is a repeatable
     Based on developer preferences and the relation type we "guess" the best solution
     we can provide for the user and setup some defaults for them.
@@ -19,6 +19,9 @@
             'data_source' => $field['data_source'] ?? isset($field['ajax']) && $field['ajax'] ? url($crud->route.'/fetch/'.$routeEntity) : 'false',
             'wrapper' => $field['pivot_wrapper'] ?? [],
             'minimum_input_length' => $field['minimum_input_length'] ?? 2,
+            'delay' => $field['delay'] ?? 500,
+            'placeholder' => $field['placeholder'] ?? trans('backpack::crud.select_entry')
+
     ];
     if($inline_create) {
         $field['inline_create'] = $inline_create;

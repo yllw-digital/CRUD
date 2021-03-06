@@ -34,9 +34,4 @@ class AccountDetails extends Model
     {
         return $this->nickname.'++';
     }
-
-    public function article()
-    {
-        return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\Article');
-    }
 }
