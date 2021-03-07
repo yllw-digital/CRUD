@@ -166,13 +166,13 @@ trait Create
 
                     $relation_data[$pivot_id] = $pivot_data;
                 }
+            }
 
-                $model->{$field['name']}()->sync($relation_data);
+            $model->{$field['name']}()->sync($relation_data);
 
-                if (isset($field['morph']) && $field['morph'] && isset($data[$field['name']])) {
-                    $values = $data[$field['name']];
-                    $model->{$field['name']}()->sync($values);
-                }
+            if (isset($field['morph']) && $field['morph'] && isset($data[$field['name']])) {
+                $values = $data[$field['name']];
+                $model->{$field['name']}()->sync($values);
             }
         }
     }
