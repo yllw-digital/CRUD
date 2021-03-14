@@ -206,7 +206,7 @@ trait Relationships
         $relation_model = $this->getRelationModel($relation_field['entity'], -1);
         $related_method = Str::afterLast($relation_field['entity'], '.');
 
-        if (!method_exists($relation_model, $related_method) && $this->isNestedRelation($relation_field)) {
+        if (! method_exists($relation_model, $related_method) && $this->isNestedRelation($relation_field)) {
             return Str::beforeLast($relation_field['entity'], '.');
         }
 
