@@ -223,10 +223,10 @@ trait Create
                     } else {
                         $modelInstance = $relation->updateOrCreate([], $relationData['values']);
                     }
-                break;
+                    break;
+
                 case HasMany::class:
                 case MorphMany::class:
-
                     $relation_values = $relationData['values'][$relationMethod];
 
                     if (is_string($relation_values)) {
@@ -238,7 +238,7 @@ trait Create
                     } else {
                         $this->createManyEntries($item, $relation, $relationMethod, $relationData);
                     }
-                break;
+                    break;
             }
 
             if (isset($relationData['relations'])) {
@@ -375,7 +375,7 @@ trait Create
         if ($relation_values !== null && $relationData['values'][$relationMethod][0] !== null) {
             // we add the new values into the relation
             $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
-           ->update([$relation_foreign_key => $item->{$relation_local_key}]);
+                ->update([$relation_foreign_key => $item->{$relation_local_key}]);
 
             // we clear up any values that were removed from model relation.
             // if developer provided a fallback id, we use it
@@ -383,17 +383,17 @@ trait Create
             // if none of the above we delete the model from database
             if (isset($relationData['fallback_id'])) {
                 $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
-                            ->where($relation_foreign_key, $item->{$relation_local_key})
-                            ->update([$relation_foreign_key => $relationData['fallback_id']]);
+                    ->where($relation_foreign_key, $item->{$relation_local_key})
+                    ->update([$relation_foreign_key => $relationData['fallback_id']]);
             } else {
                 if (! $relation_column_is_nullable || $force_delete) {
                     $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
-                            ->where($relation_foreign_key, $item->{$relation_local_key})
-                            ->delete();
+                        ->where($relation_foreign_key, $item->{$relation_local_key})
+                        ->delete();
                 } else {
                     $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
-                            ->where($relation_foreign_key, $item->{$relation_local_key})
-                            ->update([$relation_foreign_key => null]);
+                        ->where($relation_foreign_key, $item->{$relation_local_key})
+                        ->update([$relation_foreign_key => null]);
                 }
             }
         } else {
@@ -401,13 +401,13 @@ trait Create
             // we gonna clear all related values by setting up the value to the fallback id, to null or delete.
             if (isset($relationData['fallback_id'])) {
                 $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
-                            ->update([$relation_foreign_key => $relationData['fallback_id']]);
+                    ->update([$relation_foreign_key => $relationData['fallback_id']]);
             } else {
                 if (! $relation_column_is_nullable || $force_delete) {
                     $model_instance->where($relation_foreign_key, $item->{$relation_local_key})->delete();
                 } else {
                     $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
-                            ->update([$relation_foreign_key => null]);
+                        ->update([$relation_foreign_key => null]);
                 }
             }
         }

@@ -12,35 +12,37 @@
     $field['fields'] = $field['pivotFields'];
     $inline_create = !isset($inlineCreate) && isset($field['inline_create']) ? $field['inline_create'] : false;
     $pivotSelectorField = [
-            'name' => $field['name'],
-            'label' => $field['label'],
-            'multiple' => false,
-            'ajax' => $field['ajax'] ?? false,
-            'data_source' => $field['data_source'] ?? isset($field['ajax']) && $field['ajax'] ? url($crud->route.'/fetch/'.$routeEntity) : 'false',
-            'wrapper' => $field['pivot_wrapper'] ?? [],
-            'minimum_input_length' => $field['minimum_input_length'] ?? 2,
-            'delay' => $field['delay'] ?? 500,
-            'placeholder' => $field['placeholder'] ?? trans('backpack::crud.select_entry')
-
+        'name' => $field['name'],
+        'label' => $field['label'],
+        'multiple' => false,
+        'ajax' => $field['ajax'] ?? false,
+        'data_source' => $field['data_source'] ?? isset($field['ajax']) && $field['ajax'] ? url($crud->route.'/fetch/'.$routeEntity) : 'false',
+        'wrapper' => $field['pivot_wrapper'] ?? [],
+        'minimum_input_length' => $field['minimum_input_length'] ?? 2,
+        'delay' => $field['delay'] ?? 500,
+        'placeholder' => $field['placeholder'] ?? trans('backpack::crud.select_entry')
     ];
+
     if($inline_create) {
         $field['inline_create'] = $inline_create;
     }
 
-    if ($field['relation_type'] == 'MorphToMany' || $field['relation_type'] == 'BelongsToMany') {
-        $field['fields'] = Arr::prepend($field['fields'], $pivotSelectorField);
+    switch ($field['relation_type']) {
+        case 'MorphToMany':
+        case 'BelongsToMany':
+            $field['fields'] = Arr::prepend($field['fields'], $pivotSelectorField);
+            break;
+
+        case 'MorphMany':
+        case 'HasMany':
+            if(isset($entry)) {
+                $field['fields'] = Arr::prepend($field['fields'], [
+                    'name' => $entry->{$field['name']}()->getLocalKeyName(),
+                    'type' => 'hidden',
+                ]);
+            }
+            break;
     }
-
-    if ($field['relation_type'] == 'MorphMany' || $field['relation_type'] == 'HasMany') {
-        if(isset($entry)) {
-
-        $field['fields'] = Arr::prepend($field['fields'], [
-            'name' => $entry->{$field['name']}()->getLocalKeyName(),
-            'type' => 'hidden',
-        ]);
-        }
-    }
-
 @endphp
 
 @include('crud::fields.repeatable')

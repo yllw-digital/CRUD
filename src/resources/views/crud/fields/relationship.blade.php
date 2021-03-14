@@ -29,16 +29,16 @@
             // if there is pivot fields we show the repeatable field
             if(isset($field['pivotFields'])) {
                 $field['type'] = 'repeatable_relation';
-             }else{
+            } else {
                 if(isset($field['inline_create'])) {
                     // if the field is beeing inserted in an inline create modal
                     // we don't allow modal over modal (for now ...) so we load fetch or select accordingly to field type.
-                    if(!isset($inlineCreate)) {
+                    if(! isset($inlineCreate)) {
                         $field['type'] = 'fetch_or_create';
-                    }else{
+                    } else {
                         $field['type'] = $field['ajax'] ? 'fetch' : 'relationship_select';
                     }
-                }else{
+                } else {
                     $field['type'] = $field['ajax'] ? 'fetch' : 'relationship_select';
                 }
             }
@@ -49,7 +49,7 @@
             // if there is pivot fields we show the repeatable field
             if(isset($field['pivotFields'])) {
                 $field['type'] = 'repeatable_relation';
-            }else{
+            } else {
                 // we show a regular/ajax select
                 $field['type'] = $field['ajax'] ? 'fetch' : 'relationship_select';
             }

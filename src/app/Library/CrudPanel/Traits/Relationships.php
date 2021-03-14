@@ -62,7 +62,7 @@ trait Relationships
             ->where('model')
             ->whereIn('relation_type', $relation_types)
             ->filter(function ($item) {
-                $related_model = get_class($this->model->{Arr::first(explode('.', $item['entity']))}()->getRelated());
+                $related_model = get_class($this->model->{Str::before($item['entity'], '.')}()->getRelated());
 
                 return Str::contains($item['entity'], '.') && $item['model'] !== $related_model ? false : true;
             })
@@ -176,10 +176,10 @@ trait Relationships
             case 'BelongsToMany':
             case 'MorphToMany':
                 return true;
-            break;
+                break;
             default:
                 return false;
-            break;
+                break;
         }
     }
 
@@ -191,11 +191,7 @@ trait Relationships
      */
     protected function isNestedRelation($field): bool
     {
-        if (strpos($field['entity'], '.') !== false) {
-            return true;
-        }
-
-        return false;
+        return Str::contains($field['entity'], '.');
     }
 
     /**
@@ -207,20 +203,11 @@ trait Relationships
      */
     public function getOnlyRelationEntity($relation_field)
     {
-        $entity_array = explode('.', $relation_field['entity']);
-
         $relation_model = $this->getRelationModel($relation_field['entity'], -1);
+        $related_method = Str::afterLast($relation_field['entity'], '.');
 
-        $related_method = Arr::last($entity_array);
-
-        if (! method_exists($relation_model, $related_method)) {
-            if (count($entity_array) <= 1) {
-                return $relation_field['entity'];
-            } else {
-                array_pop($entity_array);
-            }
-
-            return implode('.', $entity_array);
+        if (!method_exists($relation_model, $related_method) && $this->isNestedRelation($relation_field)) {
+            return Str::beforeLast($relation_field['entity'], '.');
         }
 
         return $relation_field['entity'];
