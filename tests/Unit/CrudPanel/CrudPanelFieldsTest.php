@@ -553,7 +553,7 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertEquals($field['relation_type'], 'BelongsToMany');
     }
 
-    public function testFieldNamePartialyMatchRelationName()
+    public function testFieldNamePartiallyMatchesRelationName()
     {
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('articles_id');
