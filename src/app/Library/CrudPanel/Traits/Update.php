@@ -111,18 +111,11 @@ trait Update
                 switch ($relation_type) {
                     case HasOne::class:
                     case MorphOne::class:
-                        return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
+                        return $relatedModel->{$relationMethod}->{Str::afterLast($relational_entity, '.')};
+                        break;
 
                     case HasMany::class:
                     case MorphMany::class:
-
-                        $attribute_value = $this->getManyRelationAttributeValue($relatedModel, $relationMethod, $field, $relation_type);
-                        // we only want to return the json_encoded values here
-                        if (is_string($attribute_value)) {
-                            return $attribute_value;
-                        }
-
-                    break;
                     case BelongsToMany::class:
                     case MorphToMany::class:
                         $attribute_value = $this->getManyRelationAttributeValue($relatedModel, $relationMethod, $field, $relation_type);
@@ -130,7 +123,7 @@ trait Update
                         if (is_string($attribute_value)) {
                             return $attribute_value;
                         }
-                    break;
+                        break;
                 }
             }
 
@@ -170,32 +163,35 @@ trait Update
             return $field['name'] != $item['name'];
         });
         $related_models = $model->{$relation_method};
-        $return = [];
+        $result = [];
+
         // for any given model, we grab the attributes that belong to our pivot table.
         foreach ($related_models as $related_model) {
             $item = [];
             switch ($relation_type) {
                 case HasMany::class:
                 case MorphMany::class:
-                        // for any given related model, we get the value from pivot fields
-                        foreach ($pivot_fields as $pivot_field) {
-                            $item[$pivot_field['name']] = $related_model->{$pivot_field['name']};
-                        }
-                        $item[$related_model->getKeyName()] = $related_model->getKey();
-                        $return[] = $item;
-            break;
-            case BelongsToMany::class:
-            case MorphToMany::class:
+                    // for any given related model, we get the value from pivot fields
+                    foreach ($pivot_fields as $pivot_field) {
+                        $item[$pivot_field['name']] = $related_model->{$pivot_field['name']};
+                    }
+                    $item[$related_model->getKeyName()] = $related_model->getKey();
+                    $result[] = $item;
+                    break;
 
-                    $item[$field['name']] = $related_model->getKey();
-                    //for any given related model, we get the pivot fields.
+                case BelongsToMany::class:
+                case MorphToMany::class:
+                    // for any given related model, we get the pivot fields.
                     foreach ($pivot_fields as $pivot_field) {
                         $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
                     }
-                    $return[] = $item;
+                    $item[$field['name']] = $related_model->getKey();
+                    $result[] = $item;
+                    break;
             }
         }
+
         // we return the json encoded result as expected by repeatable field.
-        return json_encode($return);
+        return json_encode($result);
     }
 }

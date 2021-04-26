@@ -188,9 +188,7 @@
                 let selected_element = $(e.currentTarget);
                 let select_val = selected_element.val();
 
-                let valuesWithoutEmpty = select_val.filter(v =>{
-                    return v != "";
-                });
+                let valuesWithoutEmpty = select_val.filter(v => v !== "");
 
                 $(this).val(valuesWithoutEmpty).trigger('change');
             }

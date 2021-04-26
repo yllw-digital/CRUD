@@ -553,7 +553,7 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertEquals($field['relation_type'], 'BelongsToMany');
     }
 
-    public function testFieldNamePartialyMatcheRelationName()
+    public function testFieldNamePartiallyMatchesRelationName()
     {
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('articles_id');
@@ -575,7 +575,7 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('roles');
         $this->crudPanel->addField('accountDetails.nickname');
-        //this next field should not be returned because is not a direct relation
+        // this next field should not be returned because is not a direct relation
         $this->crudPanel->addField('accountDetails.article');
         $relationField = $this->crudPanel->getFieldsWithRelationType(['BelongsToMany', 'HasOne']);
 
