@@ -8,7 +8,6 @@ use Backpack\CRUD\app\Models\Traits\SpatieTranslatable\Sluggable;
 use Backpack\CRUD\app\Models\Traits\SpatieTranslatable\SluggableScopeHelpers;
 use Illuminate\Database\Eloquent\Model;
 
-
 class Product extends Model
 {
     use CrudTrait;
@@ -27,7 +26,7 @@ class Product extends Model
     protected $fillable = ['name', 'slug', 'description', 'details', 'features', 'price', 'category_id', 'extras'];
     // protected $hidden = [];
     // protected $dates = [];
-    public $translatable = ['name','slug', 'description', 'details', 'features', 'extras'];
+    public $translatable = ['name', 'slug', 'description', 'details', 'features', 'extras'];
     public $casts = [
         'features'       => 'object',
         'extra_features' => 'object',
@@ -63,6 +62,7 @@ class Product extends Model
             ],
         ];
     }
+
     /*
     |--------------------------------------------------------------------------
     | ACCESORS

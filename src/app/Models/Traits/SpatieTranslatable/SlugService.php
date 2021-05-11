@@ -39,6 +39,4 @@ class SlugService extends \Cviebrock\EloquentSluggable\Services\SlugService
 
         return $this->model->isDirty($attributes);
     }
-
-
 }
