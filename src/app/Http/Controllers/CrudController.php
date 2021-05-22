@@ -39,7 +39,7 @@ class CrudController extends Controller
             $this->setupDefaults();
             $this->setup();
             $this->setupConfigurationForCurrentOperation();
-            
+
             $this->hookAfterSetup();
 
             return $next($request);
@@ -52,7 +52,7 @@ class CrudController extends Controller
     public function setup()
     {
     }
-    
+
     /**
      * Allow developers to have a fully configured CrudPanel before fowarding the request.
      */
