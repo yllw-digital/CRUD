@@ -214,13 +214,12 @@ trait Create
      */
     private function getRelationDataFromFormData($data)
     {
-
         $relation_fields = $this->getRelationFields();
 
         $relation_fields = $this->parseRelationFieldNamesFromHtml($relation_fields);
 
         //remove fields that are not in the submitted form.
-        $relation_fields = array_filter($relation_fields, function($item) use ($data) {
+        $relation_fields = array_filter($relation_fields, function ($item) use ($data) {
             return Arr::has($data, $item['name']);
         });
 
