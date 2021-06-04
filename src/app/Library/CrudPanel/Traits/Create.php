@@ -214,10 +214,19 @@ trait Create
      */
     private function getRelationDataFromFormData($data)
     {
+
         $relation_fields = $this->getRelationFields();
+
+        $relation_fields = $this->parseRelationFieldNamesFromHtml($relation_fields);
+
+        //remove fields that are not in the submitted form.
+        $relation_fields = array_filter($relation_fields, function($item) use ($data) {
+            return Arr::has($data, $item['name']);
+        });
+
         $relationData = [];
         foreach ($relation_fields as $relation_field) {
-            $attributeKey = $this->parseRelationFieldNamesFromHtml([$relation_field])[0]['name'];
+            $attributeKey = $relation_field['name'];
 
             if (isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
                 $key = implode('.relations.', explode('.', $this->getOnlyRelationEntity($relation_field)));
