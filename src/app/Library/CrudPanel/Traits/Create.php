@@ -198,7 +198,7 @@ trait Create
         }
     }
 
-        /**
+    /**
      * When using the HasMany/MorphMany relations as selectable elements we use this function to sync those relations.
      * Here we allow for different functionality than when creating. Developer could use this relation as a
      * selectable list of items that can belong to one/none entity at any given time.
@@ -303,6 +303,7 @@ trait Create
                 Arr::set($relationData, 'relations.'.$key, $fieldData);
             }
         }
+
         return $relationData;
     }
 
