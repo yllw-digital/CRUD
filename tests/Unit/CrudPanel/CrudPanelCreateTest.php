@@ -57,7 +57,7 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         ],
 
     ];
-    
+
     private $nonRelationshipField = [
         'name'  => 'field1',
         'label' => 'Field1',

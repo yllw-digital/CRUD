@@ -35,7 +35,6 @@ trait Create
 
         $item = $this->model->create(Arr::except($data, $nn_relationships));
 
-
         // if there are any other relations create them.
         $this->createRelations($item, $data);
 
@@ -188,7 +187,7 @@ trait Create
         if (! isset($formattedData['relations'])) {
             return false;
         }
-        
+
         foreach ($formattedData['relations'] as $relationMethod => $relationData) {
             if (! isset($relationData['model'])) {
                 continue;
@@ -200,7 +199,7 @@ trait Create
             switch ($relation_type) {
                 case HasOne::class:
                 case MorphOne::class:
-                    
+
                     // we first check if there are relations of the relation
                     if (isset($relationData['relations'])) {
                         // if there are nested relations, we first add the BelongsTo like in main entry
@@ -291,7 +290,7 @@ trait Create
         });
 
         $relationData = [];
-        
+
         foreach ($relation_fields as $relation_field) {
             $attributeKey = $this->parseRelationFieldNamesFromHtml([$relation_field])[0]['name'];
 

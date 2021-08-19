@@ -33,7 +33,7 @@ trait Update
         $item = $this->model->findOrFail($id);
 
         $data = $this->changeBelongsToNamesFromRelationshipToForeignKey($data);
-        
+
         $this->createRelations($item, $data);
 
         // omit the n-n relationships when updating the eloquent item
