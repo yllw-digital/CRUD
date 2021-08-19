@@ -32,16 +32,16 @@ trait Update
         $data = $this->compactFakeFields($data);
         $item = $this->model->findOrFail($id);
 
+        $data = $this->changeBelongsToNamesFromRelationshipToForeignKey($data);
+        
+        $this->createRelations($item, $data);
+
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
 
-        // handle BelongsTo 1:1 relations
-        $item = $this->associateOrDissociateBelongsToRelations($item, $data);
+        $data = Arr::except($data, $nn_relationships);
 
-        $item->fill(Arr::except($data, $nn_relationships));
-        $item->save();
-
-        $this->createRelations($item, $data);
+        $updated = $item->update($data);
 
         return $item;
     }

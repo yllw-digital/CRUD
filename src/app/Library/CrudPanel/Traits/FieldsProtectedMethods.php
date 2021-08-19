@@ -151,38 +151,6 @@ trait FieldsProtectedMethods
         return $field;
     }
 
-    /**
-     * If field entity is provided, infer the relationship data from the relation.
-     *
-     * @param array $field
-     * @return array|void
-     */
-    protected function makeSureFieldHasRelationshipData($field)
-    {
-        // only do this if "entity" is defined on the field
-        if (! isset($field['entity'])) {
-            return $field;
-        }
-
-        $extraFieldAttributes = $this->inferFieldAttributesFromRelationship($field);
-
-        if (! empty($extraFieldAttributes)) {
-            $field = array_merge($field, $extraFieldAttributes);
-        } else {
-            abort(500, 'Unable to process relationship data: '.$field['name']);
-        }
-
-        return $field;
-    }
-
-    /**
-     * If field entity contains a dot, we know we are dealing with a relationship.
-     * If that relation is HasOne/MorphOne we want to ovewrite the field name so
-     * we will have the connected key as part of the field name.
-     *
-     * @param array $field
-     * @return array
-     */
     protected function overwriteFieldNameFromEntity($field)
     {
         // if the entity doesn't have a dot, it means we don't need to overwrite the name

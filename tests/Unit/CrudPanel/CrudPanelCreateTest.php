@@ -14,6 +14,50 @@ use Illuminate\Support\Arr;
  */
 class CrudPanelCreateTest extends BaseDBCrudPanelTest
 {
+    private $userInputHasOneWithBelongsToRelation = [
+        [
+            'name' => 'accountDetails.nickname',
+        ],
+        [
+            'name' => 'accountDetails.profile_picture',
+        ],
+        [
+            'name' => 'accountDetails.article',
+            'type' => 'relationship',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelationName = [
+        [
+            'name' => 'user',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'address',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelatedKey = [
+        [
+            'name' => 'user_id',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'address_id',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+    
     private $nonRelationshipField = [
         'name'  => 'field1',
         'label' => 'Field1',
@@ -108,48 +152,10 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         ],
     ];
 
-    private $userInputHasOneWithBelongsToRelation = [
-        [
-            'name' => 'accountDetails.nickname',
-        ],
-        [
-            'name' => 'accountDetails.profile_picture',
-        ],
-        [
-            'name' => 'accountDetails.article',
-            'type' => 'relationship',
-        ],
-
-    ];
-
-    private $articleBelongsToWithRelationName = [
+    private $articleInputBelongsToRelationName = [
         [
             'name' => 'user',
-            'type' => 'relationship',
         ],
-        [
-            'name' => 'address',
-            'type' => 'relationship',
-        ],
-        [
-            'name' => 'content',
-        ],
-
-    ];
-
-    private $articleBelongsToWithRelatedKey = [
-        [
-            'name' => 'user_id',
-            'type' => 'relationship',
-        ],
-        [
-            'name' => 'address_id',
-            'type' => 'relationship',
-        ],
-        [
-            'name' => 'content',
-        ],
-
     ];
 
     public function testCreate()
@@ -213,12 +219,13 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->crudPanel->addFields($this->userInputFieldsNoRelationships);
         $this->crudPanel->addFields($this->userInputHasOneRelation);
         $faker = Factory::create();
+        $account_details_nickname = $faker->name;
         $inputData = [
             'name'     => $faker->name,
             'email'    => $faker->safeEmail,
             'password' => bcrypt($faker->password()),
             'accountDetails' => [
-                'nickname' => $faker->name,
+                'nickname' => $account_details_nickname,
                 'profile_picture' => 'test.jpg',
             ],
         ];

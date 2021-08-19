@@ -28,16 +28,13 @@ trait Create
     {
         $data = $this->decodeJsonCastedAttributes($data);
         $data = $this->compactFakeFields($data);
+        $data = $this->changeBelongsToNamesFromRelationshipToForeignKey($data);
 
         // omit the n-n relationships when updating the eloquent item
-        $relationships = Arr::pluck($this->getRelationFields(), 'name');
+        $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
 
-        // init and fill model
-        $item = $this->model->make(Arr::except($data, $relationships));
+        $item = $this->model->create(Arr::except($data, $nn_relationships));
 
-        // handle BelongsTo 1:1 relations
-        $item = $this->associateOrDissociateBelongsToRelations($item, $data);
-        $item->save();
 
         // if there are any other relations create them.
         $this->createRelations($item, $data);
@@ -191,7 +188,7 @@ trait Create
         if (! isset($formattedData['relations'])) {
             return false;
         }
-
+        
         foreach ($formattedData['relations'] as $relationMethod => $relationData) {
             if (! isset($relationData['model'])) {
                 continue;
@@ -203,6 +200,7 @@ trait Create
             switch ($relation_type) {
                 case HasOne::class:
                 case MorphOne::class:
+                    
                     // we first check if there are relations of the relation
                     if (isset($relationData['relations'])) {
                         // if there are nested relations, we first add the BelongsTo like in main entry
@@ -245,33 +243,6 @@ trait Create
                 $this->createRelationsForItem($modelInstance, ['relations' => $relationData['relations']]);
             }
         }
-    }
-
-    /**
-     * Associate and dissociate BelongsTo relations in the model.
-     *
-     * @param  Model $item
-     * @param  array $data The form data.
-     * @return Model Model with relationships set up.
-     */
-    protected function associateOrDissociateBelongsToRelations($item, array $data)
-    {
-        $belongsToFields = $this->getFieldsWithRelationType('BelongsTo');
-
-        foreach ($belongsToFields as $relationField) {
-            if (method_exists($item, $this->getOnlyRelationEntity($relationField))) {
-                $relatedId = Arr::get($data, $relationField['name']);
-                if (isset($relatedId) && $relatedId !== null) {
-                    $related = $relationField['model']::find($relatedId);
-
-                    $item->{$this->getOnlyRelationEntity($relationField)}()->associate($related);
-                } else {
-                    $item->{$this->getOnlyRelationEntity($relationField)}()->dissociate();
-                }
-            }
-        }
-
-        return $item;
     }
 
     /**
@@ -320,10 +291,11 @@ trait Create
         });
 
         $relationData = [];
-
+        
         foreach ($relation_fields as $relation_field) {
             $attributeKey = $this->parseRelationFieldNamesFromHtml([$relation_field])[0]['name'];
-            if (isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
+
+            if ((! is_null(Arr::get($data, $attributeKey)) || $this->isNestedRelation($relation_field)) && isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
                 $key = implode('.relations.', explode('.', $this->getOnlyRelationEntity($relation_field)));
                 $fieldData = Arr::get($relationData, 'relations.'.$key, []);
                 if (! array_key_exists('model', $fieldData)) {
