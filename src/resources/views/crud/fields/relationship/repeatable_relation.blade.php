@@ -20,7 +20,7 @@
         'wrapper' => $field['pivot_wrapper'] ?? [],
         'minimum_input_length' => $field['minimum_input_length'] ?? 2,
         'delay' => $field['delay'] ?? 500,
-        'placeholder' => $field['placeholder'] ?? trans('backpack::crud.select_entry')
+        'placeholder' => $field['placeholder'] ?? trans('backpack::crud.select_entry'),
         'options' => $field['options'] ?? (function($query) { return $query; }),
     ];
 
