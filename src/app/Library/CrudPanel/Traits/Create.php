@@ -70,6 +70,7 @@ trait Create
                 is_array($field['subfields']) &&
                 count($field['subfields'])) {
                 foreach ($field['subfields'] as $subfield) {
+                    $subfield = $this->makeSureFieldHasNecessaryAttributes($subfield);
                     array_push($relationFields, $subfield);
                 }
             }
