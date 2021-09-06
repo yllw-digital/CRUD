@@ -198,6 +198,7 @@
 
 
                 function updateTableFieldJson() {
+                    console.log("Updating table field json");
                     var $rows = $tableWrapper.find('tbody tr').not('.clonable');
                     var $hiddenField = $tableWrapper.find('input.array-json');
 
