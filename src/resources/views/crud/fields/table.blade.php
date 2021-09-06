@@ -192,6 +192,10 @@
                     updateTableFieldJson();
                 });
 
+                $tableWrapper.find('tbody').on('change', function() {
+                    updateTableFieldJson();
+                });
+
 
                 function updateTableFieldJson() {
                     var $rows = $tableWrapper.find('tbody tr').not('.clonable');
