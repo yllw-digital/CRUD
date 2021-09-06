@@ -121,7 +121,7 @@
                         addItem();
 
                         $.each(this, function(column , value) {
-                            $tableWrapper.find('tbody tr:last').find('input[data-cell-name="item.' + column + '"]').val(value);
+                            $tableWrapper.find('tbody tr:last').find('input[data-cell-name="item.' + column + '"],select[data-cell-name="item.' + column + '"]').val(value);
                         });
 
                         // if it's the last row, update the JSON
@@ -200,7 +200,7 @@
                     var json = '[';
                     var otArr = [];
                     var tbl2 = $rows.each(function(i) {
-                        x = $(this).children().closest('td').find('input');
+                        x = $(this).children().closest('td').find('input, select');
                         var itArr = [];
                         x.each(function() {
                             if(this.value.length > 0) {
